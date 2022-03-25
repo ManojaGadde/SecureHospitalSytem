@@ -1,5 +1,7 @@
 package com.bezkoder.spring.security.postgresql.controllers;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -154,8 +156,26 @@ public class AuthController {
 		}
 
 		user.setRoles(roles);
-		String sql = "INSERT INTO user (userID, name, email, password, accountType, startDate, expiryDate) VALUES ("
-		+ "50, 'shashank', 'shashankreddy@gmail.com', '123', 'admin', 11/20/2021, 11/20/2022)";
+
+		//String sql = "INSERT INTO public.\"user\"(\"userID\", name, email, password, \"accountType\", \"startDate\", \"expiryDate\")" + 
+			//"VALUES (51, 'abhishek', 'shashankrddy@gmail.com', '123', 'admin', '2021-03-18', '2022-03-18')";
+		
+		LocalDate dateObj = LocalDate.now();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		String date = dateObj.format(formatter);
+		
+        String arr[] = new String[strRoles.size()];
+        arr = strRoles.toArray(arr);
+
+		String sql = "INSERT INTO public.\"user\"(name, email, password, \"accountType\", \"startDate\")" + 
+			String.format("VALUES('%s', '%s', '%s', '%s', '%s')", signUpRequest.getUsername(), signUpRequest.getEmail(), signUpRequest.getPassword(), 
+			arr[0], date);
+
+		int rows = jdbcTemplate.update(sql);
+        if (rows > 0) {
+            System.out.println("A new row has been inserted.");
+        }
+
 		userRepository.save(user);
 
 		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
