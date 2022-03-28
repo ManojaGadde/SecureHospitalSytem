@@ -1,5 +1,9 @@
 package com.bezkoder.spring.security.postgresql.controllers;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
@@ -74,7 +78,7 @@ public class AuthController {
 				.collect(Collectors.toList());
 
 		return ResponseEntity.ok(new JwtResponse(jwt, 
-												 userDetails.getId(), 
+												 GetUserID(userDetails.getEmail()), 
 												 userDetails.getUsername(), 
 												 userDetails.getEmail(), 
 												 roles));
@@ -179,5 +183,26 @@ public class AuthController {
 		userRepository.save(user);
 
 		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+	}
+
+	public Long GetUserID(String email)
+	{
+		Connection c = null;
+        Statement stmt = null;
+		int patientID = -1;
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+			String sql = String.format("SELECT \"userID\" FROM public.\"user\" WHERE email='%s'", email);
+            ResultSet rs = stmt.executeQuery(sql);
+            while ( rs.next() ) {
+                patientID = rs.getInt("userID");
+			}
+		}catch ( Exception e ) {
+			System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+			  }
+		return Integer.toUnsignedLong(patientID);
 	}
 }
