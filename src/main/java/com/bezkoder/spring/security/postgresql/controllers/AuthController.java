@@ -164,6 +164,31 @@ public class AuthController {
 		//String sql = "INSERT INTO public.\"user\"(\"userID\", name, email, password, \"accountType\", \"startDate\", \"expiryDate\")" + 
 			//"VALUES (51, 'abhishek', 'shashankrddy@gmail.com', '123', 'admin', '2021-03-18', '2022-03-18')";
 		
+		// Insert Into UserTable
+		InsertIntoUserTable(strRoles, signUpRequest);
+		// Insert Into PatientTable
+		InsertIntoPatientTable(signUpRequest);
+
+		userRepository.save(user);
+
+		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+	}
+
+	public void InsertIntoPatientTable(SignupRequest signUpRequest)
+	{
+		String sql = "INSERT INTO public.\"patient\"(\"patientID\", age, gender, address, \"phoneNumber\", \"creditCard\")" + 
+			String.format("VALUES('%d', '%d', '%s', '%s', '%s', '%s')", GetUserID(signUpRequest.getEmail()), 
+			Integer.parseInt(signUpRequest.getAge()), signUpRequest.getGender(), signUpRequest.getAddress(), signUpRequest.getPhoneNumber(), 
+			signUpRequest.getCreditCard());
+
+		int rows = jdbcTemplate.update(sql);
+        if (rows > 0) {
+            System.out.println("A new row has been inserted.");
+        }
+	}
+
+	public void InsertIntoUserTable(Set<String> strRoles, SignupRequest signUpRequest)
+	{
 		LocalDate dateObj = LocalDate.now();
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		String date = dateObj.format(formatter);
@@ -179,10 +204,6 @@ public class AuthController {
         if (rows > 0) {
             System.out.println("A new row has been inserted.");
         }
-
-		userRepository.save(user);
-
-		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
 	}
 
 	public Long GetUserID(String email)
