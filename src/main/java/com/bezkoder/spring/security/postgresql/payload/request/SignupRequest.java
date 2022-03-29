@@ -5,6 +5,11 @@ import java.util.Set;
 import javax.validation.constraints.*;
  
 public class SignupRequest {
+
+    @NotBlank
+    @Size(min = 3, max = 20)
+    private String name;
+
     @NotBlank
     @Size(min = 3, max = 20)
     private String username;
@@ -39,6 +44,14 @@ public class SignupRequest {
     private String creditCard;
 
     private Set<String> role;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public String getUsername() {
         return username;

@@ -76,10 +76,12 @@ public class AuthController {
 		List<String> roles = userDetails.getAuthorities().stream()
 				.map(item -> item.getAuthority())
 				.collect(Collectors.toList());
+		
+		String[] details = GetUserDetails(userDetails.getEmail());
 
-		return ResponseEntity.ok(new JwtResponse(jwt, 
-												 GetUserID(userDetails.getEmail()), 
+		return ResponseEntity.ok(new JwtResponse(jwt, (long) Integer.parseInt(details[0]),
 												 userDetails.getUsername(), 
+												 details[1], 
 												 userDetails.getEmail(), 
 												 roles));
 	}
@@ -177,7 +179,7 @@ public class AuthController {
 	public void InsertIntoPatientTable(SignupRequest signUpRequest)
 	{
 		String sql = "INSERT INTO public.\"patient\"(\"patientID\", age, gender, address, \"phoneNumber\", \"creditCard\")" + 
-			String.format("VALUES('%d', '%d', '%s', '%s', '%s', '%s')", GetUserID(signUpRequest.getEmail()), 
+			String.format("VALUES('%d', '%d', '%s', '%s', '%s', '%s')", (long)Integer.parseInt(GetUserDetails(signUpRequest.getEmail())[0]), 
 			Integer.parseInt(signUpRequest.getAge()), signUpRequest.getGender(), signUpRequest.getAddress(), signUpRequest.getPhoneNumber(), 
 			signUpRequest.getCreditCard());
 
@@ -197,7 +199,7 @@ public class AuthController {
         arr = strRoles.toArray(arr);
 
 		String sql = "INSERT INTO public.\"user\"(name, email, password, \"accountType\", \"startDate\")" + 
-			String.format("VALUES('%s', '%s', '%s', '%s', '%s')", signUpRequest.getUsername(), signUpRequest.getEmail(), signUpRequest.getPassword(), 
+			String.format("VALUES('%s', '%s', '%s', '%s', '%s')", signUpRequest.getName(), signUpRequest.getEmail(), signUpRequest.getPassword(), 
 			arr[0], date);
 
 		int rows = jdbcTemplate.update(sql);
@@ -206,24 +208,29 @@ public class AuthController {
         }
 	}
 
-	public Long GetUserID(String email)
+	public String[] GetUserDetails(String email)
 	{
+		String[] result = new String[2];
 		Connection c = null;
         Statement stmt = null;
 		int patientID = -1;
+		String name = null;
         try {
             Class.forName("org.postgresql.Driver");
             c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
             System.out.println("Successfully Connected.");  
             stmt = (Statement) c.createStatement();
-			String sql = String.format("SELECT \"userID\" FROM public.\"user\" WHERE email='%s'", email);
+			String sql = String.format("SELECT \"userID\", name FROM public.\"user\" WHERE email='%s'", email);
             ResultSet rs = stmt.executeQuery(sql);
             while ( rs.next() ) {
                 patientID = rs.getInt("userID");
+				name = rs.getString("name");
 			}
 		}catch ( Exception e ) {
 			System.err.println( e.getClass().getName()+": "+ e.getMessage() );
 			  }
-		return Integer.toUnsignedLong(patientID);
+		result[0] = String.format("%s", patientID);
+		result[1] = name;
+		return result;
 	}
 }
