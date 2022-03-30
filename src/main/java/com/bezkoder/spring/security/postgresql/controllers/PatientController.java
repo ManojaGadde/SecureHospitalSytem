@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.Time;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import com.bezkoder.spring.security.postgresql.payload.response.MessageResponse;
+import com.bezkoder.spring.security.postgresql.payload.response.PatientAppointmentViewResponse;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -116,4 +121,62 @@ public class PatientController {
 	public String adminAccess() {
 		return "Admin Board.";
 	}
+
+    // View Patient Appoitments
+    @GetMapping("/appointment/{id}")
+    @PreAuthorize("hasRole('PATIENT')")
+	public ResponseEntity<?> getPatientAppoitmentView(@PathVariable long id) {
+        Connection c = null;
+        Statement stmt = null;
+        int doctorID = -1, approver = -1;
+        Date date = null;
+        Time time = null;
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql = "SELECT * FROM public.appointment WHERE \"patientID\"="+id+";";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            while ( rs.next() ) {
+                doctorID = rs.getInt("doctorID");
+                time = rs.getTime("time");
+                date  = rs.getDate("date");
+                approver = rs.getInt("approver");
+            }
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return ResponseEntity.ok(new PatientAppointmentViewResponse(doctorID, time, date, approver));
+	}
+
+    // Delete Patient Appointment
+    @GetMapping("/cancel/appointment/{patientID}/{doctorID}/{date}/{time}")
+    @PreAuthorize("hasRole('PATIENT')")
+	public ResponseEntity<?> getPatientAppoitmentCancel(@PathVariable long patientID, @PathVariable int doctorID, @PathVariable Date date, @PathVariable Time time) {
+        Connection c = null;
+        Statement stmt = null;
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql = "DELETE FROM public.appointment WHERE \"patientID\"="+patientID+" AND \"doctorID\"="+doctorID+" AND date='"+date+"' AND time='"+time+"';";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return ResponseEntity.ok(new MessageResponse("Successfully Deleted"));
+	}
+
 }
