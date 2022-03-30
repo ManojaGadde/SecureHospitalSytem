@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.bezkoder.spring.security.postgresql.payload.response.PatientDiagnosisResponse;
+import com.bezkoder.spring.security.postgresql.payload.response.PatientPrescriptionResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.PatientProfileResponse;
+import com.bezkoder.spring.security.postgresql.payload.response.PatientReportResponse;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -91,6 +93,94 @@ public class PatientController {
         System.err.println( e.getClass().getName()+": "+ e.getMessage() );
           }
         return ResponseEntity.ok(new PatientDiagnosisResponse(doctorID, date, diagnosis));
+	}
+    @GetMapping("/prescription/{id}")
+    @PreAuthorize("hasRole('PATIENT')")
+	public ResponseEntity<?> getPatientPrescription(@PathVariable long id) {
+        Connection c = null;
+        Statement stmt = null;
+        int doctorID = -1;
+        List<Integer> prescriptionID = new ArrayList<Integer>();
+        List<String> prescription = new ArrayList<String>();
+        Date date = null;
+        int age = -1;
+        String gender = null;
+        String address = null;
+        String phoneNumber = null;
+        String creditCard = null;
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql = "SELECT * FROM public.prescription as d, public.patient as p where d.\"patientID\" = p.\"patientID\" and p.\"patientID\"="+id;
+            ResultSet rs = stmt.executeQuery(sql);
+            while ( rs.next() ) {
+                doctorID = rs.getInt("doctorID");
+                date  = rs.getDate("date");
+                prescriptionID.add(rs.getInt("prescriptionID"));
+                prescription.add(rs.getString("prescription" ));
+                age = rs.getInt("age");
+                gender = rs.getString("gender");
+                address = rs.getString("address");
+                phoneNumber = rs.getString("phoneNumber");
+                creditCard = rs.getString("creditCard");
+            }
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return ResponseEntity.ok(new PatientPrescriptionResponse(doctorID, date, prescriptionID, prescription, age, gender, address, phoneNumber, creditCard));
+	}
+    @GetMapping("/report/{id}")
+    @PreAuthorize("hasRole('PATIENT')")
+	public ResponseEntity<?> getPatientReport(@PathVariable long id) {
+        Connection c = null;
+        Statement stmt = null;
+        String testName = null;
+        String record = null;
+        int inputter = -1;
+        String status = null;
+        Date dateRecommended = null;
+        int recommender = -1;
+        Date dateFilled = null;
+        int age = -1;
+        String gender = null;
+        String address = null;
+        String phoneNumber = null;
+        String creditCard = null;
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql = "SELECT * FROM public.prescription as d, public.patient as p where d.\"patientID\" = p.\"patientID\" and p.\"patientID\"="+id;
+            ResultSet rs = stmt.executeQuery(sql);
+            while ( rs.next() ) {
+                testName = rs.getString("testName");
+                record = rs.getString("record");
+                inputter = rs.getInt("inputter");
+                status = rs.getString("status");
+                dateRecommended  = rs.getDate("dateRecommended");
+                recommender = rs.getInt("recommender");
+                dateFilled = rs.getDate("dateFilled");
+                age = rs.getInt("age");
+                gender = rs.getString("gender");
+                address = rs.getString("address");
+                phoneNumber = rs.getString("phoneNumber");
+                creditCard = rs.getString("creditCard");
+            }
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return ResponseEntity.ok(new PatientReportResponse(testName, record, inputter, status, dateRecommended, recommender, dateFilled, age, gender, address, phoneNumber, creditCard));
 	}
 	
     @GetMapping("/details/id")

@@ -1,34 +1,29 @@
 package com.bezkoder.spring.security.postgresql.payload.response;
 
 import java.sql.Date;
-import java.util.List;
 
-public class PatientPrescriptionResponse {
-    
+public class LabStaffPatientDiagnosisResponse {
     private int doctorID;
     private Date date;
-    private List<Integer> prescriptionID;
-    private List<String> prescription;
+    private String diagnosis;
     private int age;
     private String gender;
     private String address;
     private String phoneNumber;
     private String creditCard;
 
-    public PatientPrescriptionResponse(int doctorID, Date date, List<Integer> prescriptionID, List<String> prescription, int age,
-            String gender, String address, String phoneNumber, String creditCard) {
+    
+    public LabStaffPatientDiagnosisResponse(int doctorID, Date date, String diagnosis, int age, String gender,
+            String address, String phoneNumber, String creditCard) {
         this.doctorID = doctorID;
         this.date = date;
-        this.prescriptionID = prescriptionID;
-        this.prescription = prescription;
+        this.diagnosis = diagnosis;
         this.age = age;
         this.gender = gender;
         this.address = address;
         this.phoneNumber = phoneNumber;
         this.creditCard = creditCard;
     }
-    
-    
     public int getDoctorID() {
         return doctorID;
     }
@@ -41,17 +36,11 @@ public class PatientPrescriptionResponse {
     public void setDate(Date date) {
         this.date = date;
     }
-    public List<Integer> getPrescriptionID() {
-        return prescriptionID;
+    public String getDiagnosis() {
+        return diagnosis;
     }
-    public void setPrescriptionID(List<Integer> prescriptionID) {
-        this.prescriptionID = prescriptionID;
-    }
-    public List<String> getPrescription() {
-        return prescription;
-    }
-    public void setPrescription(List<String> prescription) {
-        this.prescription = prescription;
+    public void setDiagnosis(String diagnosis) {
+        this.diagnosis = diagnosis;
     }
     public int getAge() {
         return age;
@@ -83,5 +72,6 @@ public class PatientPrescriptionResponse {
     public void setCreditCard(String creditCard) {
         this.creditCard = creditCard;
     }
+
     
 }
