@@ -77,6 +77,8 @@ public class PatientController {
         int doctorID = -1;
         List<String> diagnosis = new ArrayList<String>();
         Date date = null;
+        int age = -1;
+        String gender = "", address = "", phoneNumber = "", creditCard = "";
         try {
             Class.forName("org.postgresql.Driver");
             c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
@@ -90,6 +92,10 @@ public class PatientController {
                 doctorID = rs.getInt("doctorID");
                 date  = rs.getDate("date");
                 diagnosis.add(rs.getString("diagnosis"));
+                age = rs.getInt("age");
+                gender = rs.getString("gender");
+                address = rs.getString("address");
+                creditCard = rs.getString("creditCard");
             }
             rs.close();
             stmt.close();
@@ -97,7 +103,7 @@ public class PatientController {
         } catch ( Exception e ) {
         System.err.println( e.getClass().getName()+": "+ e.getMessage() );
           }
-        return ResponseEntity.ok(new PatientDiagnosisResponse(doctorID, date, diagnosis));
+        return ResponseEntity.ok(new PatientDiagnosisResponse(doctorID, date, diagnosis, age, gender, address, phoneNumber, creditCard));
 	}
     @GetMapping("/prescription/{id}")
     @PreAuthorize("hasRole('PATIENT')")
