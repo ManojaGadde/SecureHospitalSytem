@@ -3,6 +3,7 @@ package com.bezkoder.spring.security.postgresql.controllers;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.bezkoder.spring.security.postgresql.payload.response.PatientDiagnosisResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.PatientPrescriptionResponse;
@@ -22,7 +23,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,12 +40,16 @@ public class PatientController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-	@GetMapping("/profile/{id}")
+	//@GetMapping("/profile/{id}")
+    @RequestMapping(
+    value = "/profile", 
+    method = RequestMethod.POST)
     @PreAuthorize("hasRole('PATIENT')")
-	public ResponseEntity<?> getPatientProfile(@PathVariable long id) {
+	public ResponseEntity<?> getPatientProfile(@RequestBody Map<String, Object> payload) {
         Connection c = null;
         Statement stmt = null;
         int age = -1;
+        int id = Integer.parseInt((String)payload.get("Id"));
         String name = "", gender = "", address = "", phoneNumber = "", creditCard = "";
         try {
             Class.forName("org.postgresql.Driver");
@@ -70,9 +77,13 @@ public class PatientController {
         return ResponseEntity.ok(new PatientProfileResponse(name, age, gender, address, phoneNumber, creditCard));
 	}
 
-    @GetMapping("/diagnosis/{id}")
+    //@GetMapping("/diagnosis/{id}")
+    @RequestMapping(
+    value = "/diagnosis", 
+    method = RequestMethod.POST)
     @PreAuthorize("hasRole('PATIENT')")
-	public ResponseEntity<?> getPatientDiagnosis(@PathVariable long id) {
+	public ResponseEntity<?> getPatientDiagnosis(@RequestBody Map<String, Object> payload) {
+        int id = Integer.parseInt((String)payload.get("Id"));
         Connection c = null;
         Statement stmt = null;
         int doctorID = -1;
@@ -106,9 +117,14 @@ public class PatientController {
           }
         return ResponseEntity.ok(new PatientDiagnosisResponse(doctorID, date, diagnosis, age, gender, address, phoneNumber, creditCard));
 	}
-    @GetMapping("/prescription/{id}")
+
+    //@GetMapping("/prescription/{id}")
+    @RequestMapping(
+    value = "/prescription", 
+    method = RequestMethod.POST)
     @PreAuthorize("hasRole('PATIENT')")
-	public ResponseEntity<?> getPatientPrescription(@PathVariable long id) {
+	public ResponseEntity<?> getPatientPrescription(@RequestBody Map<String, Object> payload) {
+        int id = Integer.parseInt((String)payload.get("Id"));
         Connection c = null;
         Statement stmt = null;
         int doctorID = -1;
@@ -147,9 +163,13 @@ public class PatientController {
           }
         return ResponseEntity.ok(new PatientPrescriptionResponse(doctorID, date, prescriptionID, prescription, age, gender, address, phoneNumber, creditCard));
 	}
-    @GetMapping("/report/{id}")
+    //@GetMapping("/report/{id}")
+    @RequestMapping(
+    value = "/report", 
+    method = RequestMethod.POST)
     @PreAuthorize("hasRole('PATIENT')")
-	public ResponseEntity<?> getPatientReport(@PathVariable long id) {
+	public ResponseEntity<?> getPatientReport(@RequestBody Map<String, Object> payload) {
+        int id = Integer.parseInt((String)payload.get("Id"));
         Connection c = null;
         Statement stmt = null;
         String testName = null;
@@ -220,9 +240,13 @@ public class PatientController {
 	}
 
     // View Patient Appoitments
-    @GetMapping("/appointment/{id}")
+    //@GetMapping("/appointment/{id}")
+    @RequestMapping(
+    value = "/appointment", 
+    method = RequestMethod.POST)
     @PreAuthorize("hasRole('PATIENT')")
-	public ResponseEntity<?> getPatientAppoitmentView(@PathVariable long id) {
+	public ResponseEntity<?> getPatientAppoitmentView(@RequestBody Map<String, Object> payload) {
+        int id = Integer.parseInt((String)payload.get("Id"));
         Connection c = null;
         Statement stmt = null;
         int doctorID = -1, approver = -1;
@@ -253,9 +277,18 @@ public class PatientController {
 	}
 
     // Delete Patient Appointment
-    @GetMapping("/cancel/appointment/{patientID}/{doctorID}/{date}/{time}")
+    //@GetMapping("/cancel/appointment/{patientID}/{doctorID}/{date}/{time}")
+    @RequestMapping(
+    value = "/cancel/appointment", 
+    method = RequestMethod.POST)
     @PreAuthorize("hasRole('PATIENT')")
-	public ResponseEntity<?> getPatientAppoitmentCancel(@PathVariable long patientID, @PathVariable int doctorID, @PathVariable String date, @PathVariable String time) {
+	public ResponseEntity<?> getPatientAppoitmentCancel(@RequestBody Map<String, Object> payload) {
+        
+        int patientID = Integer.parseInt((String)payload.get("patientID"));
+        int doctorID = Integer.parseInt((String)payload.get("doctorID"));
+        String time = (String)payload.get("time");
+        String date = (String)payload.get("date");
+
         Connection c = null;
         Statement stmt = null;
         try {
@@ -278,10 +311,18 @@ public class PatientController {
 	}
 
     // Delete Patient Appointment
-    @GetMapping("/book/appointment/{patientID}/{doctorID}/{time}/{date}")
+    //@GetMapping("/book/appointment/{patientID}/{doctorID}/{time}/{date}")
+    @RequestMapping(
+    value = "/book/appointment", 
+    method = RequestMethod.POST)
     @PreAuthorize("hasRole('PATIENT')")
-	public String bookAppointment(@PathVariable long patientID, @PathVariable int doctorID, @PathVariable String time, @PathVariable String date) {
+	public String bookAppointment(@RequestBody Map<String, Object> payload) {
         
+        int patientID = Integer.parseInt((String)payload.get("patientID"));
+        int doctorID = Integer.parseInt((String)payload.get("doctorID"));
+        String time = (String)payload.get("time");
+        String date = (String)payload.get("date");
+
         String parsedString = time.split("-")[0];
         String sql = "INSERT INTO public.appointment(\"patientID\", \"doctorID\", \"time\", date) VALUES (\'" + patientID + "\',\'" + doctorID + "\', \'" + java.sql.Time.valueOf(parsedString) + "\', \'" + java.sql.Date.valueOf(date) + "\');";
 

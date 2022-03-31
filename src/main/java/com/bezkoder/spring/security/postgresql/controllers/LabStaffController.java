@@ -1,6 +1,7 @@
 package com.bezkoder.spring.security.postgresql.controllers;
 
 import java.sql.Statement;
+import java.util.Map;
 
 import com.bezkoder.spring.security.postgresql.payload.response.LabStaffPatientDiagnosisResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.LabStaffReportResponse;
@@ -20,7 +21,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -31,9 +34,14 @@ public class LabStaffController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-	@GetMapping("/report/{id}")
+	//@GetMapping("/report/{id}")
+    @RequestMapping(
+        value = "/report", 
+        method = RequestMethod.POST)
     @PreAuthorize("hasRole('LABSTAFF')")
-	public ResponseEntity<?> getLabStaffReports(@PathVariable long id) {
+	public ResponseEntity<?> getLabStaffReports(@RequestBody Map<String, Object> payload) {
+        int id = Integer.parseInt((String)payload.get("Id"));
+
         Connection c = null;
         Statement stmt = null;
         String testName = "";
@@ -71,9 +79,21 @@ public class LabStaffController {
         return ResponseEntity.ok(new LabStaffReportResponse(testName, record, inputter, status, dateRecommended, recommender, dateFilled));
 	}
 
-    @GetMapping("/report/{id}/{testName}/{record}/{inputter}/{status}/{dateRecommended}/{recommender}/{dateFilled}")
+    //@GetMapping("/report/{id}/{testName}/{record}/{inputter}/{status}/{dateRecommended}/{recommender}/{dateFilled}")
+    @RequestMapping(
+        value = "/report/create", 
+        method = RequestMethod.POST)
     @PreAuthorize("hasRole('LABSTAFF')")
-	public ResponseEntity<?> getCreateLabStaffReports(@PathVariable long id, @PathVariable String testName, @PathVariable String record, @PathVariable int inputter, @PathVariable String status, @PathVariable Date dateRecommended, @PathVariable int recommender, @PathVariable Date dateFilled) {
+	public ResponseEntity<?> getCreateLabStaffReports(@RequestBody Map<String, Object> payload) {
+        int patientID = Integer.parseInt((String)(payload.get("patientID")));
+        int inputter = Integer.parseInt((String)(payload.get("inputter"))); 
+        int status = Integer.parseInt((String)(payload.get("status"))); 
+        int recommender = Integer.parseInt((String)(payload.get("recommender"))); 
+        String testName = (String)payload.get("testName");
+        String record = (String)payload.get("record");
+        String date = (String)payload.get("date");
+
+
         Connection c = null;
         Statement stmt = null;
         
@@ -83,8 +103,7 @@ public class LabStaffController {
             System.out.println("Successfully Connected.");  
             stmt = (Statement) c.createStatement();
 
-            String sql = "INSERT INTO public.\"labTest\"(\"patientID\", \"testName\", record, inputter, status, \"dateRecommended\", recommender,\"dateFilled\") VALUES ("+ id +" , '"+ testName +"' , '" + record + "', " + inputter + ", '" + status + "', '" + dateRecommended + "', " + recommender + " , '"  + dateFilled + "')";
-
+            String sql = "INSERT INTO public.\"labTest\"( \"patientID\", \"testName\", record, inputter, status, date, recommender) VALUES (" + patientID + ", " + testName + "," + record + ", " + inputter + ", " + status + ", " + date + ", " + recommender + ");";
             ResultSet rs = stmt.executeQuery(sql);
             
             rs.close();
@@ -96,9 +115,20 @@ public class LabStaffController {
         return ResponseEntity.ok(new MessageResponse("successful"));
         
 	}
-    @GetMapping("/report/update/{id}/{testName}/{record}/{inputter}/{status}/{dateRecommended}/{recommender}/{dateFilled}")
+    //@GetMapping("/report/update/{id}/{testName}/{record}/{inputter}/{status}/{dateRecommended}/{recommender}/{dateFilled}")
+    @RequestMapping(
+        value = "/report/update", 
+        method = RequestMethod.POST)
     @PreAuthorize("hasRole('LABSTAFF')")
-	public ResponseEntity<?> getUpdateLabStaffReports(@PathVariable long id, @PathVariable String testName, @PathVariable String record, @PathVariable int inputter, @PathVariable String status, @PathVariable Date dateRecommended, @PathVariable int recommender, @PathVariable Date dateFilled) {
+	public ResponseEntity<?> getUpdateLabStaffReports(@RequestBody Map<String, Object> payload) {
+        int patientID = Integer.parseInt((String)(payload.get("patientID")));
+        int inputter = Integer.parseInt((String)(payload.get("inputter"))); 
+        int status = Integer.parseInt((String)(payload.get("status"))); 
+        int recommender = Integer.parseInt((String)(payload.get("recommender"))); 
+        String testName = (String)payload.get("testName");
+        String record = (String)payload.get("record");
+        String date = (String)payload.get("date");
+        
         Connection c = null;
         Statement stmt = null;
         
@@ -108,8 +138,7 @@ public class LabStaffController {
             System.out.println("Successfully Connected.");  
             stmt = (Statement) c.createStatement();
 
-            String sql = "UPDATE public.\"labTest\" SET \"testName\"='"+testName+"',record='"+record+"', inputter='"+inputter+"', status='"+status+"', \"dateRecommended\"='"+dateRecommended+"' WHERE \"patientID\"="+id+" AND recommender ="+recommender+" AND \"dateFilled\"='"+dateFilled+"';";
-
+            String sql = "UPDATE public.\"labTest\" SET \"testName\"=" + testName + ", record=" + record + ", inputter=" + inputter + ", status=" + status + ", date=" + date + ", recommender=" + recommender + " WHERE \"patientID\"=" + patientID + ";";           
             ResultSet rs = stmt.executeQuery(sql);
             
             rs.close();
@@ -122,9 +151,14 @@ public class LabStaffController {
         
 	}
 
-    @GetMapping("/diagnosis/{id}")
+    //@GetMapping("/diagnosis/{id}")
+    @RequestMapping(
+        value = "/diagnosis", 
+        method = RequestMethod.POST)
     @PreAuthorize("hasRole('LABSTAFF')")
-	public ResponseEntity<?> getPatientDiagnosis(@PathVariable long id) {
+	public ResponseEntity<?> getPatientDiagnosis(@RequestBody Map<String, Object> payload) {
+        int id = Integer.parseInt((String)payload.get("Id"));
+
         Connection c = null;
         Statement stmt = null;
         int doctorID = -1;
@@ -162,9 +196,13 @@ public class LabStaffController {
           }
         return ResponseEntity.ok(new LabStaffPatientDiagnosisResponse(doctorID, date, diagnosis, age, gender, address, phoneNumber, creditCard));
 	}
-    @GetMapping("/labTests/{id}")
+
+    //@GetMapping("/labTests/{id}")
+    @RequestMapping(
+        value = "/labTests", 
+        method = RequestMethod.POST)
     @PreAuthorize("hasRole('LABSTAFF')")
-	public ResponseEntity<?> getLabTests(@PathVariable long id) {
+	public ResponseEntity<?> getLabTests(@RequestBody Map<String, Object> payload) {
         Connection c = null;
         Statement stmt = null;
         String testName = "";
@@ -201,9 +239,17 @@ public class LabStaffController {
           }
         return ResponseEntity.ok(new LabTestsResponse(testName, record, inputter, status, dateRecommended, recommender, dateFilled));
 	}
-    @GetMapping("/labTests/update/{id}/{testName}/{record}/{inputter}/{status}")
+
+    //@GetMapping("/labTests/update/{id}/{testName}/{record}/{inputter}/{status}")
+    @RequestMapping(
+        value = "/labTests/update", 
+        method = RequestMethod.POST)
     @PreAuthorize("hasRole('LABSTAFF')")
-	public ResponseEntity<?> getLabTestsRequestUpdate(@PathVariable long id, @PathVariable String testName, @PathVariable String record, @PathVariable int inputter, @PathVariable String status) {
+	public ResponseEntity<?> getLabTestsRequestUpdate(@RequestBody Map<String, Object> payload) {
+        int patientID = Integer.parseInt((String)(payload.get("patientID")));
+        int status = Integer.parseInt((String)(payload.get("status"))); 
+        String testName = (String)payload.get("testName");
+
         Connection c = null;
         Statement stmt = null;
         
@@ -213,7 +259,7 @@ public class LabStaffController {
             System.out.println("Successfully Connected.");  
             stmt = (Statement) c.createStatement();
 
-            String sql = "UPDATE public.\"labTest\" SET status ='" + status + "' WHERE \"patientID\"=" + id + " AND \"testName\"='" + testName + "';";
+            String sql = "UPDATE public.\"labTest\" SET status ='" + status + "' WHERE \"patientID\"=" + patientID + " AND \"testName\"='" + testName + "';";
 
             ResultSet rs = stmt.executeQuery(sql);
             
