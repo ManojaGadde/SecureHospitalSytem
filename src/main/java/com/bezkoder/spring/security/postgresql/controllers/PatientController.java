@@ -14,6 +14,7 @@ import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Time;
+import java.text.SimpleDateFormat;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -169,7 +170,7 @@ public class PatientController {
             System.out.println("Successfully Connected.");  
             stmt = (Statement) c.createStatement();
 
-            String sql = "SELECT * FROM public.prescription as d, public.patient as p where d.\"patientID\" = p.\"patientID\" and p.\"patientID\"="+id;
+            String sql = "SELECT * FROM public.\"labTest\" as l, public.patient as p where l.\"patientID\" = p.\"patientID\" and l.\"patientID\"=" + id;
             ResultSet rs = stmt.executeQuery(sql);
             while ( rs.next() ) {
                 testName = rs.getString("testName");
@@ -254,7 +255,7 @@ public class PatientController {
     // Delete Patient Appointment
     @GetMapping("/cancel/appointment/{patientID}/{doctorID}/{date}/{time}")
     @PreAuthorize("hasRole('PATIENT')")
-	public ResponseEntity<?> getPatientAppoitmentCancel(@PathVariable long patientID, @PathVariable int doctorID, @PathVariable Date date, @PathVariable Time time) {
+	public ResponseEntity<?> getPatientAppoitmentCancel(@PathVariable long patientID, @PathVariable int doctorID, @PathVariable String date, @PathVariable String time) {
         Connection c = null;
         Statement stmt = null;
         try {
@@ -262,8 +263,9 @@ public class PatientController {
             c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
             System.out.println("Successfully Connected.");  
             stmt = (Statement) c.createStatement();
-
-            String sql = "DELETE FROM public.appointment WHERE \"patientID\"="+patientID+" AND \"doctorID\"="+doctorID+" AND date='"+date+"' AND time='"+time+"';";
+            
+            String parsedString = time.split("-")[0];
+            String sql = "DELETE FROM public.appointment WHERE \"patientID\"="+patientID+" AND \"doctorID\"="+doctorID+" AND date='"+ java.sql.Date.valueOf(date) +"' AND time='"+ java.sql.Time.valueOf(parsedString) +"';";
 
             ResultSet rs = stmt.executeQuery(sql);
             rs.close();
@@ -273,6 +275,21 @@ public class PatientController {
         System.err.println( e.getClass().getName()+": "+ e.getMessage() );
           }
         return ResponseEntity.ok(new MessageResponse("Successfully Deleted"));
+	}
+
+    // Delete Patient Appointment
+    @GetMapping("/book/appointment/{patientID}/{doctorID}/{time}/{date}")
+    @PreAuthorize("hasRole('PATIENT')")
+	public String bookAppointment(@PathVariable long patientID, @PathVariable int doctorID, @PathVariable String time, @PathVariable String date) {
+        
+        String parsedString = time.split("-")[0];
+        String sql = "INSERT INTO public.appointment(\"patientID\", \"doctorID\", \"time\", date) VALUES (\'" + patientID + "\',\'" + doctorID + "\', \'" + java.sql.Time.valueOf(parsedString) + "\', \'" + java.sql.Date.valueOf(date) + "\');";
+
+		int rows = jdbcTemplate.update(sql);
+        if (rows > 0) {
+            System.out.println("A new row has been inserted.");
+        }
+        return "Appointment Booked Successfully";
 	}
 
 }
