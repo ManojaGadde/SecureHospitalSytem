@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.bezkoder.spring.security.postgresql.payload.response.DoctorNamesResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.FetchAllDoctorAppointmentsResponse;
+import com.bezkoder.spring.security.postgresql.payload.response.FetchUserDetailsResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.MessageResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.PatientAppointmentViewResponse;
 
@@ -166,4 +167,163 @@ public Object updateAppointments(@RequestBody Map<String, Object> payload) {
 	public String adminAccess() {
 		return "Admin Board.";
 	}
+
+	@RequestMapping(
+		value = "/transaction/create",
+		method = RequestMethod.POST)
+    //@PreAuthorize("hasRole('PATIENT')")
+	public Object createTransaction(@RequestBody Map<String, Object> payload) {
+        Connection c = null;
+        Statement stmt = null;
+        int payer = (int)payload.get("payer");
+        int transactionAmount = (int)payload.get("transactionAmount");
+        String status = (String)payload.get("status");
+        String date = (String)payload.get("date");
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql = "INSERT INTO public.transaction(\"transactionAmount\", payer, status, date) VALUES (" + transactionAmount + ", " + payer + ", '" + status + "', '" + date + "');";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            System.out.println(rs);
+            
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return "Row Inserted";
+          //return ResponseEntity.ok(new PatientDiagnosisResponse(doctorID, date, diagnosis, age, gender, address, phoneNumber, creditCard));
+	}
+
+	@RequestMapping(
+		value = "/transaction/update",
+		method = RequestMethod.POST)
+    //@PreAuthorize("hasRole('PATIENT')")
+	public Object updateTransaction(@RequestBody Map<String, Object> payload) {
+        Connection c = null;
+        Statement stmt = null;
+        int transactionID = (int)payload.get("transactionID");
+        String status = (String)payload.get("status");
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql =  "UPDATE public.transaction	SET status='" + status + "' WHERE \"transactionID\"=" + transactionID + ";";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            System.out.println(rs);
+            
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return "Updated Succesfully";
+          //return ResponseEntity.ok(new PatientDiagnosisResponse(doctorID, date, diagnosis, age, gender, address, phoneNumber, creditCard));
+	}
+
+  @GetMapping("/admin/users")
+  @PreAuthorize("hasRole('ADMIN')")
+	public Object getAllUsers() {
+        Connection c = null;
+        Statement stmt = null;
+        int userID = -1;
+        String name = "";
+        String email = "";
+        String accountType = "";
+        List<FetchUserDetailsResponse> out = new ArrayList<FetchUserDetailsResponse>();
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql = "SELECT \"userID\", name, email, \"accountType\"	FROM public.\"user\"";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            System.out.println(rs);
+            while ( rs.next() ) {
+                userID = rs.getInt("userID");
+                name = rs.getString("name");
+                email = rs.getString("email");
+                accountType = rs.getString("accountType");
+                out.add(new FetchUserDetailsResponse(userID, name, email, accountType));
+            }
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return out;
+          //return ResponseEntity.ok(new PatientDiagnosisResponse(doctorID, date, diagnosis, age, gender, address, phoneNumber, creditCard));
+	}
+
+  @GetMapping("/admin/delete/user/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
+	public Object deleteUser(@PathVariable long id) {
+        Connection c = null;
+        Statement stmt = null;
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql =  "DELETE FROM public.\"user\"	WHERE \"userID\"="+id;
+
+            ResultSet rs = stmt.executeQuery(sql);
+            System.out.println(rs);
+            
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return "Deleted Succesfully";
+          //return ResponseEntity.ok(new PatientDiagnosisResponse(doctorID, date, diagnosis, age, gender, address, phoneNumber, creditCard));
+	}
+
+  @RequestMapping(
+		value = "/admin/user/update",
+		method = RequestMethod.POST)
+  @PreAuthorize("hasRole('ADMIN')")
+  public Object updateUser(@RequestBody Map<String, Object> payload) {
+    Connection c = null;
+    Statement stmt = null;
+    String name = (String)payload.get("name");
+    String email = (String)payload.get("email");
+    String accountType = (String)payload.get("accountType");
+    int userID = (int)payload.get("userID");
+
+    try {
+        Class.forName("org.postgresql.Driver");
+        c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+        System.out.println("Successfully Connected.");  
+        stmt = (Statement) c.createStatement();
+
+        String sql =  "UPDATE public.\"user\" SET name='" + name + "', email='" + email + "', \"accountType\"='" + accountType + "'	WHERE \"userID\"=" + userID + ";";
+
+        ResultSet rs = stmt.executeQuery(sql);
+        System.out.println(rs);
+        
+        rs.close();
+        stmt.close();
+        c.close();
+    } catch ( Exception e ) {
+    System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+      }
+    return "Updated Succesfully";
+      //return ResponseEntity.ok(new PatientDiagnosisResponse(doctorID, date, diagnosis, age, gender, address, phoneNumber, creditCard));
+}
+
 }

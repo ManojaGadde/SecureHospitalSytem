@@ -33,6 +33,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.bezkoder.spring.security.postgresql.payload.response.DoctorNamesResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.FetchAllDoctorAppointmentsResponse;
+import com.bezkoder.spring.security.postgresql.payload.response.FetchAllTransactionsResponse;
+import com.bezkoder.spring.security.postgresql.payload.response.FetchBillsResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.MessageResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.PatientAppointmentViewResponse;
 
@@ -354,6 +356,103 @@ public class PatientController {
         String creditCard = (String)payload.get("creditCard");
 
         String sql = "UPDATE public.patient SET age=" + age + ", gender='" + gender + "', address='" + address + "', \"phoneNumber\"='" + phoneNumber + "', \"creditCard\"='" + creditCard + "' WHERE \"patientID\"=" + patientID + ";";
+
+		int rows = jdbcTemplate.update(sql);
+        if (rows > 0) {
+            System.out.println("A new row has been inserted.");
+        }
+        return "Profile Updated Successfully";
+	}
+
+    @GetMapping("/transaction/{id}")
+    @PreAuthorize("hasRole('PATIENT')")
+	public Object getPatientTransactionDetails(@PathVariable long id) {
+        Connection c = null;
+        Statement stmt = null;
+        int payer = -1;
+        int transactionID = -1;
+        int transactionAmount = -1;
+        String status = "";
+        Date date = null;
+        List<FetchAllTransactionsResponse> out = new ArrayList<FetchAllTransactionsResponse>();
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql = "SELECT * FROM public.transaction WHERE payer="+id;
+
+            ResultSet rs = stmt.executeQuery(sql);
+            System.out.println(rs);
+            while ( rs.next() ) {
+            transactionAmount = (int)rs.getInt("transactionAmount");
+            transactionID = (int)rs.getInt("transactionID");
+            payer = (int)rs.getInt("payer");
+            date = java.sql.Date.valueOf(rs.getString("date"));
+            out.add(new FetchAllTransactionsResponse(transactionAmount, transactionID, date, status, payer));
+                
+            }
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return out;
+          //return ResponseEntity.ok(new PatientDiagnosisResponse(doctorID, date, diagnosis, age, gender, address, phoneNumber, creditCard));
+	}
+
+    @GetMapping("/bills/{id}")
+    @PreAuthorize("hasRole('PATIENT')")
+    public Object fetchPatientBills(@PathVariable long id) {
+        Connection c = null;
+        Statement stmt = null;
+        int patientID = -1;
+        int transactionID = -1;
+        int amount = -1;
+        String service = "";
+        Date date = null;
+
+        List<FetchBillsResponse> out = new ArrayList<FetchBillsResponse>();
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql = "SELECT * FROM public.bill WHERE \"patientID\"= "+id;
+
+            ResultSet rs = stmt.executeQuery(sql);
+            while ( rs.next() ) {
+            patientID = (int)rs.getInt("patientID");
+            transactionID = (int)rs.getInt("transactionID");
+            amount = (int)rs.getInt("amount");
+            service = rs.getString("service");
+            date = rs.getDate("date");
+            out.add(new FetchBillsResponse(patientID, transactionID, amount, service, date));
+                
+            }
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return out;
+    }
+
+    @RequestMapping(
+    value = "/insurance/claim/insert", 
+    method = RequestMethod.POST)
+    @PreAuthorize("hasRole('PATIENT')")
+	public String insuranceClaimRequest(@RequestBody Map<String, Object> payload) {
+        
+        int transactionID = (int)(payload.get("transactionID"));
+        int claimedAmount = (int)(payload.get("claimedAmount"));
+        String dateOfRequest = (String)(payload.get("dateOfRequest"));
+
+        String sql = "INSERT INTO public.\"insuranceClaim\"(\"transactionID\", \"dateOfRequest\",\"dateOfApprove\",\"claimedAmount\",\"approvedAmount\",date) VALUES (" + transactionID + ", '" + java.sql.Date.valueOf(dateOfRequest) + "', '" + java.sql.Date.valueOf(dateOfRequest) + "', "+ claimedAmount + ",0 , '" + java.sql.Date.valueOf(dateOfRequest) +"')";
 
 		int rows = jdbcTemplate.update(sql);
         if (rows > 0) {
