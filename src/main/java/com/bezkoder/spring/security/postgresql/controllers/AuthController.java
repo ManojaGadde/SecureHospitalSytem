@@ -101,13 +101,14 @@ public class AuthController {
 		}
 
 		// Create new user's account
+		String password = encoder.encode(signUpRequest.getPassword());
 		User user = new User(signUpRequest.getUsername(), 
 							 signUpRequest.getEmail(),
-							 encoder.encode(signUpRequest.getPassword()));
+							 password
+							 );
 
 		Set<String> strRoles = signUpRequest.getRole();
 		Set<Role> roles = new HashSet<>();
-
 		if (strRoles == null) {
 			Role userRole = roleRepository.findByName(ERole.ROLE_USER)
 					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
@@ -167,9 +168,9 @@ public class AuthController {
 			//"VALUES (51, 'abhishek', 'shashankrddy@gmail.com', '123', 'admin', '2021-03-18', '2022-03-18')";
 		
 		// Insert Into UserTable
-		InsertIntoUserTable(strRoles, signUpRequest);
-		// Insert Into PatientTable
-		InsertIntoPatientTable(signUpRequest);
+		InsertIntoUserTable(strRoles, signUpRequest, password);
+		if(strRoles.contains("patient"))
+			InsertIntoPatientTable(signUpRequest);
 
 		userRepository.save(user);
 
@@ -189,7 +190,7 @@ public class AuthController {
         }
 	}
 
-	public void InsertIntoUserTable(Set<String> strRoles, SignupRequest signUpRequest)
+	public void InsertIntoUserTable(Set<String> strRoles, SignupRequest signUpRequest, String password)
 	{
 		LocalDate dateObj = LocalDate.now();
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -199,7 +200,7 @@ public class AuthController {
         arr = strRoles.toArray(arr);
 
 		String sql = "INSERT INTO public.\"user\"(name, email, password, \"accountType\", \"startDate\")" + 
-			String.format("VALUES('%s', '%s', '%s', '%s', '%s')", signUpRequest.getName(), signUpRequest.getEmail(), signUpRequest.getPassword(), 
+			String.format("VALUES('%s', '%s', '%s', '%s', '%s')", signUpRequest.getName(), signUpRequest.getEmail(), password, 
 			arr[0], date);
 
 		int rows = jdbcTemplate.update(sql);
