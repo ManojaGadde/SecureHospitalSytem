@@ -4,17 +4,20 @@ import java.sql.Date;
 import java.util.List;
 
 public class PatientDiagnosisResponse {
+    private int patientID;
     private int doctorID;
     private Date date;
-    private List<String> diagnosis;
-    private int age;
-    private String gender;
-    private String address;
-    private String phoneNumber;
-    private String creditCard;
+    private String diagnosis;
+    public int getPatientID() {
+        return patientID;
+    }
 
-    public PatientDiagnosisResponse(int doctorID, Date date, List<String> diagnosis, int age, String gender,
-    String address, String phoneNumber, String creditCard) {
+    public void setPatientID(int patientID) {
+        this.patientID = patientID;
+    }
+    public PatientDiagnosisResponse(int patientID, int doctorID, Date date, String diagnosis, int age, String gender,
+            String address, String phoneNumber, String creditCard) {
+        this.patientID = patientID;
         this.doctorID = doctorID;
         this.date = date;
         this.diagnosis = diagnosis;
@@ -24,6 +27,13 @@ public class PatientDiagnosisResponse {
         this.phoneNumber = phoneNumber;
         this.creditCard = creditCard;
     }
+    private int age;
+    private String gender;
+    private String address;
+    private String phoneNumber;
+    private String creditCard;
+
+    
 
     public int getAge() {
         return age;
@@ -79,10 +89,10 @@ public class PatientDiagnosisResponse {
     public void setDate(Date date) {
         this.date = date;
     }
-    public List<String> getDiagnosis() {
+    public String getDiagnosis() {
         return diagnosis;
     }
-    public void setDiagnosis(List<String> diagnosis) {
+    public void setDiagnosis(String diagnosis) {
         this.diagnosis = diagnosis;
     }
     

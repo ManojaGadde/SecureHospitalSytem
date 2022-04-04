@@ -3,9 +3,16 @@ package com.bezkoder.spring.security.postgresql.payload.response;
 import java.sql.Date;
 
 public class PatientReportResponse {
+        private int patientID;
         private String testName;
         private String record;
         private int inputter;
+        public int getPatientID() {
+            return patientID;
+        }
+        public void setPatientID(int patientID) {
+            this.patientID = patientID;
+        }
         private String status;
         private Date dateRecommended;
         private int recommender;
@@ -16,6 +23,23 @@ public class PatientReportResponse {
         private String phoneNumber;
         private String creditCard;
         
+        public PatientReportResponse(int patientID, String testName, String record, int inputter, String status,
+                Date dateRecommended, int recommender, Date dateFilled, int age, String gender, String address,
+                String phoneNumber, String creditCard) {
+            this.patientID = patientID;
+            this.testName = testName;
+            this.record = record;
+            this.inputter = inputter;
+            this.status = status;
+            this.dateRecommended = dateRecommended;
+            this.recommender = recommender;
+            this.dateFilled = dateFilled;
+            this.age = age;
+            this.gender = gender;
+            this.address = address;
+            this.phoneNumber = phoneNumber;
+            this.creditCard = creditCard;
+        }
         public PatientReportResponse(String testName, String record, int inputter, String status, Date dateRecommended,
                 int recommender, Date dateFilled, int age, String gender, String address, String phoneNumber,
                 String creditCard) {

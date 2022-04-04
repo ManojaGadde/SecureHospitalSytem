@@ -141,7 +141,7 @@ public class AuthController {
 				roles.add(labStaffRole);
 					break;
 				case "insurance_staff":
-				Role insuranceStaffRole = roleRepository.findByName(ERole.ROLE_INSURACESTAFF)
+				Role insuranceStaffRole = roleRepository.findByName(ERole.ROLE_INSURANCESTAFF)
 						.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 				roles.add(insuranceStaffRole);
 					break;

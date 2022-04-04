@@ -6,18 +6,12 @@ import java.util.List;
 public class PatientPrescriptionResponse {
     
     private int doctorID;
-    private Date date;
-    private List<Integer> prescriptionID;
-    private List<String> prescription;
-    private int age;
-    private String gender;
-    private String address;
-    private String phoneNumber;
-    private String creditCard;
+    private int patientID;
 
-    public PatientPrescriptionResponse(int doctorID, Date date, List<Integer> prescriptionID, List<String> prescription, int age,
-            String gender, String address, String phoneNumber, String creditCard) {
+    public PatientPrescriptionResponse(int patientID, int doctorID,  Date date, int prescriptionID,
+            String prescription, int age, String gender, String address, String phoneNumber, String creditCard) {
         this.doctorID = doctorID;
+        this.patientID = patientID;
         this.date = date;
         this.prescriptionID = prescriptionID;
         this.prescription = prescription;
@@ -27,7 +21,22 @@ public class PatientPrescriptionResponse {
         this.phoneNumber = phoneNumber;
         this.creditCard = creditCard;
     }
-    
+    private Date date;
+    private int prescriptionID;
+    public int getPatientID() {
+        return patientID;
+    }
+
+
+    public void setPatientID(int patientID) {
+        this.patientID = patientID;
+    }
+    private String prescription;
+    private int age;
+    private String gender;
+    private String address;
+    private String phoneNumber;
+    private String creditCard;
     
     public int getDoctorID() {
         return doctorID;
@@ -41,16 +50,16 @@ public class PatientPrescriptionResponse {
     public void setDate(Date date) {
         this.date = date;
     }
-    public List<Integer> getPrescriptionID() {
+    public int getPrescriptionID() {
         return prescriptionID;
     }
-    public void setPrescriptionID(List<Integer> prescriptionID) {
+    public void setPrescriptionID(int prescriptionID) {
         this.prescriptionID = prescriptionID;
     }
-    public List<String> getPrescription() {
+    public String getPrescription() {
         return prescription;
     }
-    public void setPrescription(List<String> prescription) {
+    public void setPrescription(String prescription) {
         this.prescription = prescription;
     }
     public int getAge() {

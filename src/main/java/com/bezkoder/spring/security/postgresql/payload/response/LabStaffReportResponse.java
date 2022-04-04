@@ -6,14 +6,22 @@ public class LabStaffReportResponse {
     private String testName;
     private String record;
     private int inputter;
+    public int getPatientID() {
+        return patientID;
+    }
+    public void setPatientID(int patientID) {
+        this.patientID = patientID;
+    }
+    private int patientID;
     private String status;
     private Date dateRecommended;
     private int recommender;
     private Date dateFilled;
     
 
-    public LabStaffReportResponse(String testName, String record, int inputter, String status, Date dateRecommended,
+    public LabStaffReportResponse(int patientID, String testName, String record, int inputter, String status, Date dateRecommended,
             int recommender, Date dateFilled) {
+        this.patientID = patientID;
         this.testName = testName;
         this.record = record;
         this.inputter = inputter;

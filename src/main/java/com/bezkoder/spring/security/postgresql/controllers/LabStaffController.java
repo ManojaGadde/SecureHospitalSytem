@@ -1,14 +1,14 @@
 package com.bezkoder.spring.security.postgresql.controllers;
 
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import com.bezkoder.spring.security.postgresql.payload.response.LabStaffPatientDiagnosisResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.LabStaffReportResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.LabTestsResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.MessageResponse;
-import com.bezkoder.spring.security.postgresql.payload.response.PatientDiagnosisResponse;
-import com.bezkoder.spring.security.postgresql.payload.response.PatientProfileResponse;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -34,50 +34,51 @@ public class LabStaffController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-	//@GetMapping("/report/{id}")
-    @RequestMapping(
-        value = "/report", 
-        method = RequestMethod.POST)
-    @PreAuthorize("hasRole('LABSTAFF')")
-	public ResponseEntity<?> getLabStaffReports(@RequestBody Map<String, Object> payload) {
-        int id = Integer.parseInt((String)payload.get("Id"));
+	// @GetMapping("/reports")
+    // @PreAuthorize("hasRole('LABSTAFF')")
+	// public Object getLabStaffReports(@PathVariable long id) {
 
-        Connection c = null;
-        Statement stmt = null;
-        String testName = "";
-        String record = "";
-        int inputter = -1;
-        String status = "";
-        Date dateRecommended = null;
-        int recommender = -1;
-        Date dateFilled = null;
+    //     Connection c = null;
+    //     Statement stmt = null;
+    //     String testName = "";
+    //     String record = "";
+    //     int inputter = -1;
+    //     int patientID = -1;
+
+    //     String status = "";
+    //     Date dateRecommended = null;
+    //     int recommender = -1;
+    //     Date dateFilled = null;
+    //     List<LabStaffReportResponse> out = new ArrayList<LabStaffReportResponse>();
         
-        try {
-            Class.forName("org.postgresql.Driver");
-            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
-            System.out.println("Successfully Connected.");  
-            stmt = (Statement) c.createStatement();
+    //     try {
+    //         Class.forName("org.postgresql.Driver");
+    //         c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+    //         System.out.println("Successfully Connected.");  
+    //         stmt = (Statement) c.createStatement();
 
-            String sql = "SELECT * FROM public.\"labTest\"";
+    //         String sql = "SELECT * FROM public.\"labTest\"";
 
-            ResultSet rs = stmt.executeQuery(sql);
-            while ( rs.next() ) {
-                testName = rs.getString("testName");
-                record = rs.getString("record");
-                inputter = rs.getInt("inputter");
-                status  = rs.getString("status");
-                dateRecommended  = rs.getDate("dateRecommended");
-                recommender  = rs.getInt("recommender");
-                dateFilled  = rs.getDate("dateFilled");
-            }
-            rs.close();
-            stmt.close();
-            c.close();
-        } catch ( Exception e ) {
-        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
-          }
-        return ResponseEntity.ok(new LabStaffReportResponse(testName, record, inputter, status, dateRecommended, recommender, dateFilled));
-	}
+    //         ResultSet rs = stmt.executeQuery(sql);
+    //         while ( rs.next() ) {
+    //             patientID = rs.getInt("patientID");
+    //             testName = rs.getString("testName");
+    //             record = rs.getString("record");
+    //             inputter = rs.getInt("inputter");
+    //             status  = rs.getString("status");
+    //             dateRecommended  = rs.getDate("dateRecommended");
+    //             recommender  = rs.getInt("recommender");
+    //             dateFilled  = rs.getDate("dateFilled");
+    //             out.add(new LabStaffReportResponse(patientID, testName, record, inputter, status, dateRecommended, recommender, dateFilled));
+    //         }
+    //         rs.close();
+    //         stmt.close();
+    //         c.close();
+    //     } catch ( Exception e ) {
+    //     System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+    //       }
+    //     return out;
+	// }
 
     //@GetMapping("/report/{id}/{testName}/{record}/{inputter}/{status}/{dateRecommended}/{recommender}/{dateFilled}")
     @RequestMapping(
@@ -85,13 +86,13 @@ public class LabStaffController {
         method = RequestMethod.POST)
     @PreAuthorize("hasRole('LABSTAFF')")
 	public ResponseEntity<?> getCreateLabStaffReports(@RequestBody Map<String, Object> payload) {
-        int patientID = Integer.parseInt((String)(payload.get("patientID")));
-        int inputter = Integer.parseInt((String)(payload.get("inputter"))); 
-        int status = Integer.parseInt((String)(payload.get("status"))); 
-        int recommender = Integer.parseInt((String)(payload.get("recommender"))); 
+        int patientID = (int)payload.get("patientID");
+        int inputter = (int)payload.get("inputter"); 
+        String status = (String)payload.get("status"); 
+        int recommender = (int)payload.get("recommender"); 
         String testName = (String)payload.get("testName");
         String record = (String)payload.get("record");
-        String date = (String)payload.get("date");
+        String date = (String)payload.get("dateRecommended");
 
 
         Connection c = null;
@@ -103,7 +104,7 @@ public class LabStaffController {
             System.out.println("Successfully Connected.");  
             stmt = (Statement) c.createStatement();
 
-            String sql = "INSERT INTO public.\"labTest\"( \"patientID\", \"testName\", record, inputter, status, date, recommender) VALUES (" + patientID + ", " + testName + "," + record + ", " + inputter + ", " + status + ", " + date + ", " + recommender + ");";
+            String sql = "INSERT INTO public.\"labTest\"( \"patientID\", \"testName\", record, inputter, status, \"dateRecommended\", recommender) VALUES (" + patientID + ", '" + testName + "','" + record + "', " + inputter + ", '" + status + "', '" + date + "', " + recommender + ");";
             ResultSet rs = stmt.executeQuery(sql);
             
             rs.close();
@@ -112,7 +113,7 @@ public class LabStaffController {
         } catch ( Exception e ) {
         System.err.println( e.getClass().getName()+": "+ e.getMessage() );
           }
-        return ResponseEntity.ok(new MessageResponse("successful"));
+        return ResponseEntity.ok(new MessageResponse("Insertion Successful"));
         
 	}
     //@GetMapping("/report/update/{id}/{testName}/{record}/{inputter}/{status}/{dateRecommended}/{recommender}/{dateFilled}")
@@ -121,13 +122,13 @@ public class LabStaffController {
         method = RequestMethod.POST)
     @PreAuthorize("hasRole('LABSTAFF')")
 	public ResponseEntity<?> getUpdateLabStaffReports(@RequestBody Map<String, Object> payload) {
-        int patientID = Integer.parseInt((String)(payload.get("patientID")));
-        int inputter = Integer.parseInt((String)(payload.get("inputter"))); 
-        int status = Integer.parseInt((String)(payload.get("status"))); 
-        int recommender = Integer.parseInt((String)(payload.get("recommender"))); 
+        int patientID = (int)payload.get("patientID");
+        int inputter = (int)payload.get("inputter"); 
+        String status = (String)(payload.get("status")); 
+        int recommender = (int)payload.get("recommender"); 
         String testName = (String)payload.get("testName");
         String record = (String)payload.get("record");
-        String date = (String)payload.get("date");
+        String date = (String)payload.get("dateRecommended");
         
         Connection c = null;
         Statement stmt = null;
@@ -138,7 +139,7 @@ public class LabStaffController {
             System.out.println("Successfully Connected.");  
             stmt = (Statement) c.createStatement();
 
-            String sql = "UPDATE public.\"labTest\" SET \"testName\"=" + testName + ", record=" + record + ", inputter=" + inputter + ", status=" + status + ", date=" + date + ", recommender=" + recommender + " WHERE \"patientID\"=" + patientID + ";";           
+            String sql = "UPDATE public.\"labTest\" SET \"testName\"='" + testName + "', record='" + record + "', inputter=" + inputter + ", status='" + status + "', \"dateRecommended\"='" + date + "', recommender=" + recommender + " WHERE \"patientID\"=" + patientID + ";";           
             ResultSet rs = stmt.executeQuery(sql);
             
             rs.close();
@@ -147,21 +148,19 @@ public class LabStaffController {
         } catch ( Exception e ) {
         System.err.println( e.getClass().getName()+": "+ e.getMessage() );
           }
-        return ResponseEntity.ok(new MessageResponse("successful"));
+        return ResponseEntity.ok(new MessageResponse("Update Successful"));
         
 	}
 
-    //@GetMapping("/diagnosis/{id}")
-    @RequestMapping(
-        value = "/diagnosis", 
-        method = RequestMethod.POST)
+    @GetMapping("/diagnosis/{id}")
     @PreAuthorize("hasRole('LABSTAFF')")
-	public ResponseEntity<?> getPatientDiagnosis(@RequestBody Map<String, Object> payload) {
-        int id = Integer.parseInt((String)payload.get("Id"));
+	public Object getPatientDiagnosis(@PathVariable long id) {
 
         Connection c = null;
         Statement stmt = null;
         int doctorID = -1;
+        int patientID = -1;
+
         Date date = null;
         String diagnosis = "";
         int age = -1;
@@ -169,6 +168,8 @@ public class LabStaffController {
         String address = "";
         String phoneNumber = "";
         String creditCard = "";
+        List<LabStaffPatientDiagnosisResponse> out = new ArrayList<LabStaffPatientDiagnosisResponse>();
+
         try {
             Class.forName("org.postgresql.Driver");
             c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
@@ -179,6 +180,7 @@ public class LabStaffController {
 
             ResultSet rs = stmt.executeQuery(sql);
             while ( rs.next() ) {
+                patientID = rs.getInt("patientID");
                 doctorID = rs.getInt("doctorID");
                 date = rs.getDate("date");
                 diagnosis = rs.getString("diagnosis");
@@ -187,31 +189,31 @@ public class LabStaffController {
                 address  = rs.getString("address");
                 phoneNumber  = rs.getString("phoneNumber");
                 creditCard = rs.getString("creditCard");
-            }
+                out.add(new LabStaffPatientDiagnosisResponse(patientID, doctorID, date, diagnosis, age, gender, address, phoneNumber, creditCard));
+;            }
             rs.close();
             stmt.close();
             c.close();
         } catch ( Exception e ) {
         System.err.println( e.getClass().getName()+": "+ e.getMessage() );
           }
-        return ResponseEntity.ok(new LabStaffPatientDiagnosisResponse(doctorID, date, diagnosis, age, gender, address, phoneNumber, creditCard));
+        return out;
 	}
 
-    //@GetMapping("/labTests/{id}")
-    @RequestMapping(
-        value = "/labTests", 
-        method = RequestMethod.POST)
+    @GetMapping("/labTests")
     @PreAuthorize("hasRole('LABSTAFF')")
-	public ResponseEntity<?> getLabTests(@RequestBody Map<String, Object> payload) {
+	public Object getAllLabTests() {
         Connection c = null;
         Statement stmt = null;
         String testName = "";
         String record = "";
         int inputter = -1;
+        int patientID = -1;
         String status = "";
         Date dateRecommended = null;
         int recommender = -1;
         Date dateFilled = null;
+        List<LabTestsResponse> out = new ArrayList<LabTestsResponse>();
         
         try {
             Class.forName("org.postgresql.Driver");
@@ -223,6 +225,7 @@ public class LabStaffController {
 
             ResultSet rs = stmt.executeQuery(sql);
             while ( rs.next() ) {
+                patientID = rs.getInt("patientID");
                 testName = rs.getString("testName");
                 record = rs.getString("record");
                 inputter = rs.getInt("inputter");
@@ -230,6 +233,7 @@ public class LabStaffController {
                 dateRecommended  = rs.getDate("dateRecommended");
                 recommender  = rs.getInt("recommender");
                 dateFilled  = rs.getDate("dateFilled");
+                out.add(new LabTestsResponse(patientID, testName, record, inputter, status, dateRecommended, recommender, dateFilled));
             }
             rs.close();
             stmt.close();
@@ -237,17 +241,17 @@ public class LabStaffController {
         } catch ( Exception e ) {
         System.err.println( e.getClass().getName()+": "+ e.getMessage() );
           }
-        return ResponseEntity.ok(new LabTestsResponse(testName, record, inputter, status, dateRecommended, recommender, dateFilled));
+        return out;
 	}
 
     //@GetMapping("/labTests/update/{id}/{testName}/{record}/{inputter}/{status}")
     @RequestMapping(
-        value = "/labTests/update", 
+        value = "/labTest/update", 
         method = RequestMethod.POST)
     @PreAuthorize("hasRole('LABSTAFF')")
 	public ResponseEntity<?> getLabTestsRequestUpdate(@RequestBody Map<String, Object> payload) {
-        int patientID = Integer.parseInt((String)(payload.get("patientID")));
-        int status = Integer.parseInt((String)(payload.get("status"))); 
+        int patientID = (int)payload.get("patientID");
+        String status = (String)payload.get("status"); 
         String testName = (String)payload.get("testName");
 
         Connection c = null;
@@ -269,6 +273,119 @@ public class LabStaffController {
         } catch ( Exception e ) {
         System.err.println( e.getClass().getName()+": "+ e.getMessage() );
           }
-        return ResponseEntity.ok(new MessageResponse("successful"));
+        return ResponseEntity.ok(new MessageResponse("Update Successful"));
+	}
+
+    @GetMapping("/fetchAllLabTests")
+    @PreAuthorize("hasRole('LABSTAFF')")
+	public Object getLabTests() {
+        Connection c = null;
+        Statement stmt = null;
+        String testName = "";
+        String record = "";
+        int inputter = -1;
+        int patientID = -1;
+        String status = "";
+        Date dateRecommended = null;
+        int recommender = -1;
+        Date dateFilled = null;
+        List<LabTestsResponse> out = new ArrayList<LabTestsResponse>();
+        
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql = "SELECT * FROM public.\"labTest\";";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            while ( rs.next() ) {
+                patientID = rs.getInt("patientID");
+                testName = rs.getString("testName");
+                record = rs.getString("record");
+                inputter = rs.getInt("inputter");
+                status  = rs.getString("status");
+                dateRecommended  = rs.getDate("dateRecommended");
+                recommender  = rs.getInt("recommender");
+                dateFilled  = rs.getDate("dateFilled");
+                out.add(new LabTestsResponse(patientID, testName, record, inputter, status, dateRecommended, recommender, dateFilled));
+            }
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return out;
+	}
+
+    //@GetMapping("/labTests/update/{id}/{testName}/{record}/{inputter}/{status}")
+    @RequestMapping(
+        value = "/labTest/report/update", 
+        method = RequestMethod.POST)
+    @PreAuthorize("hasRole('LABSTAFF')")
+	public ResponseEntity<?> labTestsReportUpdate(@RequestBody Map<String, Object> payload) {
+        int patientID = (int)payload.get("patientID");
+        int inputter = (int)payload.get("inputter");
+        String status = (String)payload.get("status"); 
+        String testName = (String)payload.get("testName");
+        String dateRecommended = (String)payload.get("dateRecommended");
+        String dateFilled = (String)payload.get("dateFilled");
+        int recommender = (int)payload.get("recommender"); 
+        String record = (String)payload.get("record");
+
+        Connection c = null;
+        Statement stmt = null;
+        
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql = "UPDATE public.\"labTest\" SET record='" + record + "', inputter=" + inputter + ", status='" + status + "', \"dateFilled\"='" + dateFilled + "' WHERE \"patientID\"=" + patientID + " AND \"testName\"='" + testName + "' AND recommender='" + recommender + "' AND \"dateRecommended\"='" + java.sql.Date.valueOf(dateRecommended) + "';";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return ResponseEntity.ok(new MessageResponse("Update Successful"));
+	}
+
+    //@GetMapping("/labTests/update/{id}/{testName}/{record}/{inputter}/{status}")
+    @RequestMapping(
+        value = "/labTest/report/delete", 
+        method = RequestMethod.POST)
+    @PreAuthorize("hasRole('LABSTAFF')")
+	public ResponseEntity<?> deleteTestsReportUpdate(@RequestBody Map<String, Object> payload) {
+        int patientID = (int)payload.get("patientID");
+        String testName = (String)payload.get("testName");
+        String dateRecommended = (String)payload.get("dateRecommended");
+        int recommender = (int)payload.get("recommender"); 
+        Connection c = null;
+        Statement stmt = null;
+        
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql = "DELETE FROM public.\"labTest\"  WHERE \"patientID\"=" + patientID + " AND \"testName\"='" + testName + "' AND recommender=" + recommender + " AND \"dateRecommended\"='" + dateRecommended + "';";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return ResponseEntity.ok(new MessageResponse("Deletion Successful"));
 	}
 }

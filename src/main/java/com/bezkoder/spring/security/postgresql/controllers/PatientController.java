@@ -14,6 +14,7 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.Time;
 import java.text.SimpleDateFormat;
 
@@ -30,6 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import com.bezkoder.spring.security.postgresql.payload.response.DoctorNamesResponse;
+import com.bezkoder.spring.security.postgresql.payload.response.FetchAllDoctorAppointmentsResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.MessageResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.PatientAppointmentViewResponse;
 
@@ -39,103 +42,23 @@ import com.bezkoder.spring.security.postgresql.payload.response.PatientAppointme
 public class PatientController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
-	//@GetMapping("/profile/{id}")
-    @RequestMapping(
-    value = "/profile", 
-    method = RequestMethod.POST)
+    @GetMapping("/prescription/{id}")
     @PreAuthorize("hasRole('PATIENT')")
-	public ResponseEntity<?> getPatientProfile(@RequestBody Map<String, Object> payload) {
-        Connection c = null;
-        Statement stmt = null;
-        int age = -1;
-        int id = Integer.parseInt((String)payload.get("Id"));
-        String name = "", gender = "", address = "", phoneNumber = "", creditCard = "";
-        try {
-            Class.forName("org.postgresql.Driver");
-            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
-            System.out.println("Successfully Connected.");  
-            stmt = (Statement) c.createStatement();
-
-            String sql = "SELECT name, age, gender, address, \"phoneNumber\", \"creditCard\" FROM public.user as u, public.patient as p where u.\"userID\" = p.\"patientID\" and u.\"userID\"="+id+"";
-
-            ResultSet rs = stmt.executeQuery(sql);
-            while ( rs.next() ) {
-                age = rs.getInt("age");
-                name = rs.getString("name");
-                gender  = rs.getString("gender");
-                address  = rs.getString("address");
-                phoneNumber  = rs.getString("phoneNumber");
-                creditCard  = rs.getString("creditCard");
-            }
-            rs.close();
-            stmt.close();
-            c.close();
-        } catch ( Exception e ) {
-        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
-          }
-        return ResponseEntity.ok(new PatientProfileResponse(name, age, gender, address, phoneNumber, creditCard));
-	}
-
-    //@GetMapping("/diagnosis/{id}")
-    @RequestMapping(
-    value = "/diagnosis", 
-    method = RequestMethod.POST)
-    @PreAuthorize("hasRole('PATIENT')")
-	public ResponseEntity<?> getPatientDiagnosis(@RequestBody Map<String, Object> payload) {
-        int id = Integer.parseInt((String)payload.get("Id"));
+	public Object getPatientPrescription(@PathVariable long id) {
         Connection c = null;
         Statement stmt = null;
         int doctorID = -1;
-        List<String> diagnosis = new ArrayList<String>();
-        Date date = null;
-        int age = -1;
-        String gender = "", address = "", phoneNumber = "", creditCard = "";
-        try {
-            Class.forName("org.postgresql.Driver");
-            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
-            System.out.println("Successfully Connected.");  
-            stmt = (Statement) c.createStatement();
-
-            String sql = "SELECT * FROM public.diagnosis as d, public.patient as p where d.\"patientID\" = p.\"patientID\" and p.\"patientID\"="+id;
-
-            ResultSet rs = stmt.executeQuery(sql);
-            while ( rs.next() ) {
-                doctorID = rs.getInt("doctorID");
-                date  = rs.getDate("date");
-                diagnosis.add(rs.getString("diagnosis"));
-                age = rs.getInt("age");
-                gender = rs.getString("gender");
-                address = rs.getString("address");
-                creditCard = rs.getString("creditCard");
-            }
-            rs.close();
-            stmt.close();
-            c.close();
-        } catch ( Exception e ) {
-        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
-          }
-        return ResponseEntity.ok(new PatientDiagnosisResponse(doctorID, date, diagnosis, age, gender, address, phoneNumber, creditCard));
-	}
-
-    //@GetMapping("/prescription/{id}")
-    @RequestMapping(
-    value = "/prescription", 
-    method = RequestMethod.POST)
-    @PreAuthorize("hasRole('PATIENT')")
-	public ResponseEntity<?> getPatientPrescription(@RequestBody Map<String, Object> payload) {
-        int id = Integer.parseInt((String)payload.get("Id"));
-        Connection c = null;
-        Statement stmt = null;
-        int doctorID = -1;
-        List<Integer> prescriptionID = new ArrayList<Integer>();
-        List<String> prescription = new ArrayList<String>();
+        int prescriptionID;
+        String prescription = "";
         Date date = null;
         int age = -1;
         String gender = null;
         String address = null;
         String phoneNumber = null;
         String creditCard = null;
+        int patientID = -1;
+        List<PatientPrescriptionResponse> out = new ArrayList<PatientPrescriptionResponse>();
+
         try {
             Class.forName("org.postgresql.Driver");
             c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
@@ -145,15 +68,18 @@ public class PatientController {
             String sql = "SELECT * FROM public.prescription as d, public.patient as p where d.\"patientID\" = p.\"patientID\" and p.\"patientID\"="+id;
             ResultSet rs = stmt.executeQuery(sql);
             while ( rs.next() ) {
+                
+                patientID = rs.getInt("patientID");
                 doctorID = rs.getInt("doctorID");
                 date  = rs.getDate("date");
-                prescriptionID.add(rs.getInt("prescriptionID"));
-                prescription.add(rs.getString("prescription" ));
+                prescriptionID = rs.getInt("prescriptionID");
+                prescription = rs.getString("prescription" );
                 age = rs.getInt("age");
                 gender = rs.getString("gender");
                 address = rs.getString("address");
                 phoneNumber = rs.getString("phoneNumber");
                 creditCard = rs.getString("creditCard");
+                out.add(new PatientPrescriptionResponse(patientID, doctorID, date, prescriptionID, prescription, age, gender, address, phoneNumber, creditCard));
             }
             rs.close();
             stmt.close();
@@ -161,15 +87,11 @@ public class PatientController {
         } catch ( Exception e ) {
         System.err.println( e.getClass().getName()+": "+ e.getMessage() );
           }
-        return ResponseEntity.ok(new PatientPrescriptionResponse(doctorID, date, prescriptionID, prescription, age, gender, address, phoneNumber, creditCard));
+        return out;
 	}
-    //@GetMapping("/report/{id}")
-    @RequestMapping(
-    value = "/report", 
-    method = RequestMethod.POST)
+    @GetMapping("/report/{id}")
     @PreAuthorize("hasRole('PATIENT')")
-	public ResponseEntity<?> getPatientReport(@RequestBody Map<String, Object> payload) {
-        int id = Integer.parseInt((String)payload.get("Id"));
+	public Object getPatientReport(@PathVariable long id) {
         Connection c = null;
         Statement stmt = null;
         String testName = null;
@@ -180,10 +102,13 @@ public class PatientController {
         int recommender = -1;
         Date dateFilled = null;
         int age = -1;
+        int patientID = -1;
+
         String gender = null;
         String address = null;
         String phoneNumber = null;
         String creditCard = null;
+        List<PatientReportResponse> out = new ArrayList<PatientReportResponse>();
         try {
             Class.forName("org.postgresql.Driver");
             c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
@@ -193,6 +118,7 @@ public class PatientController {
             String sql = "SELECT * FROM public.\"labTest\" as l, public.patient as p where l.\"patientID\" = p.\"patientID\" and l.\"patientID\"=" + id;
             ResultSet rs = stmt.executeQuery(sql);
             while ( rs.next() ) {
+                patientID = rs.getInt("patientID");
                 testName = rs.getString("testName");
                 record = rs.getString("record");
                 inputter = rs.getInt("inputter");
@@ -205,6 +131,7 @@ public class PatientController {
                 address = rs.getString("address");
                 phoneNumber = rs.getString("phoneNumber");
                 creditCard = rs.getString("creditCard");
+                out.add(new PatientReportResponse(patientID, testName, record, inputter, status, dateRecommended, recommender, dateFilled, age, gender, address, phoneNumber, creditCard));
             }
             rs.close();
             stmt.close();
@@ -212,7 +139,7 @@ public class PatientController {
         } catch ( Exception e ) {
         System.err.println( e.getClass().getName()+": "+ e.getMessage() );
           }
-        return ResponseEntity.ok(new PatientReportResponse(testName, record, inputter, status, dateRecommended, recommender, dateFilled, age, gender, address, phoneNumber, creditCard));
+        return out;
 	}
 	
     @GetMapping("/details/id")
@@ -240,18 +167,19 @@ public class PatientController {
 	}
 
     // View Patient Appoitments
-    //@GetMapping("/appointment/{id}")
-    @RequestMapping(
-    value = "/appointment", 
-    method = RequestMethod.POST)
+    @GetMapping("/appointment/{id}")
     @PreAuthorize("hasRole('PATIENT')")
-	public ResponseEntity<?> getPatientAppoitmentView(@RequestBody Map<String, Object> payload) {
-        int id = Integer.parseInt((String)payload.get("Id"));
+	public Object getPatientAppoitmentView(@PathVariable long id) {
         Connection c = null;
         Statement stmt = null;
         int doctorID = -1, approver = -1;
         Date date = null;
         Time time = null;
+        int patientID = -1;
+        String status = "";
+        int amount = -1;
+        List<PatientAppointmentViewResponse> response = new ArrayList<PatientAppointmentViewResponse>();
+
         try {
             Class.forName("org.postgresql.Driver");
             c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
@@ -259,13 +187,16 @@ public class PatientController {
             stmt = (Statement) c.createStatement();
 
             String sql = "SELECT * FROM public.appointment WHERE \"patientID\"="+id+";";
-
             ResultSet rs = stmt.executeQuery(sql);
             while ( rs.next() ) {
+                patientID = rs.getInt("patientID");
                 doctorID = rs.getInt("doctorID");
                 time = rs.getTime("time");
                 date  = rs.getDate("date");
                 approver = rs.getInt("approver");
+                status = rs.getString("status");
+                amount = rs.getInt("amount");
+                response.add(new PatientAppointmentViewResponse(patientID, doctorID, time, date, approver, status, amount));
             }
             rs.close();
             stmt.close();
@@ -273,7 +204,7 @@ public class PatientController {
         } catch ( Exception e ) {
         System.err.println( e.getClass().getName()+": "+ e.getMessage() );
           }
-        return ResponseEntity.ok(new PatientAppointmentViewResponse(doctorID, time, date, approver));
+        return response;
 	}
 
     // Delete Patient Appointment
@@ -284,8 +215,8 @@ public class PatientController {
     @PreAuthorize("hasRole('PATIENT')")
 	public ResponseEntity<?> getPatientAppoitmentCancel(@RequestBody Map<String, Object> payload) {
         
-        int patientID = Integer.parseInt((String)payload.get("patientID"));
-        int doctorID = Integer.parseInt((String)payload.get("doctorID"));
+        int patientID = (int)(payload.get("patientID"));
+        int doctorID = (int)(payload.get("doctorID"));
         String time = (String)payload.get("time");
         String date = (String)payload.get("date");
 
@@ -318,8 +249,8 @@ public class PatientController {
     @PreAuthorize("hasRole('PATIENT')")
 	public String bookAppointment(@RequestBody Map<String, Object> payload) {
         
-        int patientID = Integer.parseInt((String)payload.get("patientID"));
-        int doctorID = Integer.parseInt((String)payload.get("doctorID"));
+        int patientID = (int)payload.get("patientID");
+        int doctorID = (int)payload.get("doctorID");
         String time = (String)payload.get("time");
         String date = (String)payload.get("date");
 
@@ -333,4 +264,101 @@ public class PatientController {
         return "Appointment Booked Successfully";
 	}
 
+    @GetMapping("/profile/{id}")
+    @PreAuthorize("hasRole('PATIENT')")
+	public ResponseEntity<?> getPatientProfile(@PathVariable long id) {
+        Connection c = null;
+        Statement stmt = null;
+        int age = -1;
+        String name = "", gender = "", address = "", phoneNumber = "", creditCard = "";
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql = "SELECT name, age, gender, address, \"phoneNumber\", \"creditCard\" FROM public.user as u, public.patient as p where u.\"userID\" = p.\"patientID\" and u.\"userID\"="+id+"";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            while ( rs.next() ) {
+                age = rs.getInt("age");
+                name = rs.getString("name");
+                gender  = rs.getString("gender");
+                address  = rs.getString("address");
+                phoneNumber  = rs.getString("phoneNumber");
+                creditCard  = rs.getString("creditCard");
+            }
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return ResponseEntity.ok(new PatientProfileResponse(name, age, gender, address, phoneNumber, creditCard));
+	}
+
+    @GetMapping("/diagnosis/{id}")
+    @PreAuthorize("hasRole('PATIENT')")
+	public Object getPatientDiagnosis(@PathVariable long id) {
+        Connection c = null;
+        Statement stmt = null;
+        int doctorID = -1;
+        int patientID = -1;
+        String diagnosis = "";
+        Date date = null;
+        int age = -1;
+        String gender = "", address = "", phoneNumber = "", creditCard = "";
+        List<PatientDiagnosisResponse> out = new ArrayList<PatientDiagnosisResponse>();
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql = "SELECT * FROM public.diagnosis as d, public.patient as p where d.\"patientID\" = p.\"patientID\" and p.\"patientID\"="+id;
+
+            ResultSet rs = stmt.executeQuery(sql);
+            System.out.println(rs);
+            while ( rs.next() ) {
+                patientID = rs.getInt("patientID");
+                doctorID = rs.getInt("doctorID");
+                date  = rs.getDate("date");
+                diagnosis = rs.getString("diagnosis");
+                age = rs.getInt("age");
+                gender = rs.getString("gender");
+                address = rs.getString("address");
+                creditCard = rs.getString("creditCard");
+                out.add(new PatientDiagnosisResponse(patientID, doctorID, date, diagnosis, age, gender, address, phoneNumber, creditCard));
+            }
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return out;
+          //return ResponseEntity.ok(new PatientDiagnosisResponse(doctorID, date, diagnosis, age, gender, address, phoneNumber, creditCard));
+	}
+
+    @RequestMapping(
+    value = "/profile/update", 
+    method = RequestMethod.POST)
+    @PreAuthorize("hasRole('PATIENT')")
+	public String updatePatientProfile(@RequestBody Map<String, Object> payload) {
+        
+        int patientID = (int)(payload.get("patientID"));
+        int age = (int)(payload.get("age"));
+        String gender = (String)payload.get("gender");
+        String address = (String)payload.get("address");
+        String phoneNumber = (String)payload.get("phoneNumber");
+        String creditCard = (String)payload.get("creditCard");
+
+        String sql = "UPDATE public.patient SET age=" + age + ", gender='" + gender + "', address='" + address + "', \"phoneNumber\"='" + phoneNumber + "', \"creditCard\"='" + creditCard + "' WHERE \"patientID\"=" + patientID + ";";
+
+		int rows = jdbcTemplate.update(sql);
+        if (rows > 0) {
+            System.out.println("A new row has been inserted.");
+        }
+        return "Profile Updated Successfully";
+	}
 }

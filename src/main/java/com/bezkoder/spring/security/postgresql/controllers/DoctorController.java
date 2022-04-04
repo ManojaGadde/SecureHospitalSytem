@@ -5,6 +5,8 @@ import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -26,19 +28,17 @@ import com.bezkoder.spring.security.postgresql.payload.response.MessageResponse;
 public class DoctorController {
 
     //View Patient Record
-    //@GetMapping("/patient/records/{id}")
-    @RequestMapping(
-    value = "/patient/records", 
-    method = RequestMethod.POST)
+    @GetMapping("/patient/records/{id}")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<?> getPatientRecords(@RequestBody Map<String, Object> payload) {
-        int id = Integer.parseInt((String)payload.get("Id"));
+    public Object getPatientRecords(@PathVariable long id) {
         
         Connection c = null;
         Statement stmt = null;
-        int recordId = -1, inputter = -1;
+        int recordId = -1, inputter = -1, patientID = -1;
         String record = "";
         Date date = null;
+        List<DoctorPatientRecordsResponse> out = new ArrayList<DoctorPatientRecordsResponse>();
+
         try {
             Class.forName("org.postgresql.Driver");
             c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
@@ -49,18 +49,19 @@ public class DoctorController {
 
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
-                recordId = rs.getInt("recordId");
+                patientID = rs.getInt("patientID");
+                recordId = rs.getInt("recordID");
                 record = rs.getString("record");
                 inputter = rs.getInt("inputter");
                 date = rs.getDate("date");
-            }
+                out.add(new DoctorPatientRecordsResponse(patientID, recordId, inputter, record, date));            }
             rs.close();
             stmt.close();
             c.close();
         } catch (Exception e) {
             System.err.println(e.getClass().getName()+": "+e.getMessage());
         }
-        return ResponseEntity.ok(new DoctorPatientRecordsResponse(recordId, inputter, record, date));
+        return out;
     }
 
     // Update Patient Record
@@ -70,9 +71,9 @@ public class DoctorController {
     method = RequestMethod.POST)
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<?> updatePatientRecord(@RequestBody Map<String, Object> payload) {
-        int id = Integer.parseInt((String)(payload.get("patientID")));
-        int inputter = Integer.parseInt((String)(payload.get("inputter")));
-        int recordID = Integer.parseInt((String)(payload.get("recordID")));
+        int id = (int)payload.get("patientID");
+        int inputter = (int)(payload.get("inputter"));
+        int recordID = (int)(payload.get("recordID"));
         String date = (String)payload.get("date");
         String record = (String)payload.get("record");
 
@@ -103,8 +104,8 @@ public class DoctorController {
         method = RequestMethod.POST)
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<?> insertPatientDiagnosis(@RequestBody Map<String, Object> payload) {
-        int patientID = Integer.parseInt((String)(payload.get("patientID")));
-        int doctorID = Integer.parseInt((String)(payload.get("doctorID"))); 
+        int patientID = (int)payload.get("patientID");
+        int doctorID = (int)(payload.get("doctorID")); 
         String date = (String)payload.get("date");
         String diagnosis = (String)payload.get("diagnosis");
 
@@ -137,10 +138,10 @@ public class DoctorController {
         method = RequestMethod.POST)
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<?> getPatientDiagnosisUpdate(@RequestBody Map<String, Object> payload) {
-        int patientID = Integer.parseInt((String)(payload.get("patientID")));
-        int doctorID = Integer.parseInt((String)(payload.get("doctorID"))); 
-        String newDate = (String)payload.get("new_date");
-        String oldDate = (String)payload.get("old_date");
+        int patientID = (int)payload.get("patientID");
+        int doctorID = (int)payload.get("doctorID"); 
+        String newDate = (String)payload.get("newDate");
+        String oldDate = (String)payload.get("oldDate");
         String diagnosis = (String)payload.get("diagnosis");
         
         Connection c = null;
@@ -170,8 +171,8 @@ public class DoctorController {
         method = RequestMethod.POST)
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<?> getPatientDiagnosisDelete(@RequestBody Map<String, Object> payload) {
-        int patientID = Integer.parseInt((String)(payload.get("patientID")));
-        int doctorID = Integer.parseInt((String)(payload.get("doctorID"))); 
+        int patientID = (int)(payload.get("patientID"));
+        int doctorID = (int)payload.get("doctorID"); 
         String date = (String)payload.get("date");
         String diagnosis = (String)payload.get("diagnosis");
 
@@ -192,7 +193,7 @@ public class DoctorController {
         } catch (Exception e) {
             System.err.println(e.getClass().getName()+": "+e.getMessage());
         }
-        return ResponseEntity.ok(new MessageResponse("Successfully Updated"));
+        return ResponseEntity.ok(new MessageResponse("Successfully Deleted"));
     }
 
     // Create Prescriptions
@@ -202,9 +203,9 @@ public class DoctorController {
         method = RequestMethod.POST)
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<?> getPatientPrescriotionsCreate(@RequestBody Map<String, Object> payload) {
-        int patientID = Integer.parseInt((String)(payload.get("patientID")));
-        int doctorID = Integer.parseInt((String)(payload.get("doctorID"))); 
-        int prescriptionID = Integer.parseInt((String)(payload.get("prescriptionID"))); 
+        int patientID = (int)payload.get("patientID");
+        int doctorID = (int)payload.get("doctorID"); 
+        int prescriptionID = (int)payload.get("prescriptionID"); 
         String date = (String)payload.get("date");
         String prescription = (String)payload.get("prescription");
         Connection c = null;
@@ -225,6 +226,36 @@ public class DoctorController {
             System.err.println(e.getClass().getName()+": "+e.getMessage());
         }
         return ResponseEntity.ok(new MessageResponse("Successfully Updated"));
+    }
+
+    @RequestMapping(
+        value = "/labtest/create", 
+        method = RequestMethod.POST)
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<?> createLabTest(@RequestBody Map<String, Object> payload) {
+        int patientID = (int)payload.get("patientID");
+        String dateRecommended = (String)payload.get("dateRecommended");
+        String testName = (String)payload.get("testName");
+        String status = (String)payload.get("status");
+        int recommender = (int)payload.get("recommender");
+        Connection c = null;
+        Statement stmt = null;
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");
+            stmt = (Statement) c.createStatement();
+
+            String sql = "INSERT INTO public.\"labTest\"( \"patientID\", \"testName\", status, \"dateRecommended\", recommender) VALUES (" + patientID + ", '" + testName + "' ,'" + status + "', '" + dateRecommended + "', " + recommender + ");";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch (Exception e) {
+            System.err.println(e.getClass().getName()+": "+e.getMessage());
+        }
+        return ResponseEntity.ok(new MessageResponse("Successfully Inserted"));
     }
     
 }
