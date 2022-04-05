@@ -48,7 +48,7 @@ public class HospitalStaffController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @GetMapping("/fetchAllAppointments")
-    @PreAuthorize("hasRole('HOSPITALSTAFF')")
+    //@PreAuthorize("hasRole('HOSPITALSTAFF')")
 	public Object fetchAllAppointments() {
         Connection c = null;
         Statement stmt = null;
@@ -72,6 +72,7 @@ public class HospitalStaffController {
             while ( rs.next() ) {
                 
                 patientID = rs.getInt("patientID");
+                doctorID = rs.getInt("doctorID");
                 date  = rs.getDate("date");
                 time = rs.getTime("time");
                 approver = rs.getInt("approver");
@@ -91,7 +92,7 @@ public class HospitalStaffController {
     @RequestMapping(
         value = "/patient/appointment/approve", 
         method = RequestMethod.POST)
-    @PreAuthorize("hasRole('HOSPITALSTAFF')")
+    //@PreAuthorize("hasRole('HOSPITALSTAFF')")
 	public ResponseEntity<?> approveAppointment(@RequestBody Map<String, Object> payload) {
         int patientID = (int)payload.get("patientID");
         int doctorID = (int)payload.get("doctorID");
@@ -124,7 +125,7 @@ public class HospitalStaffController {
     @RequestMapping(
         value = "/patient/appointment/decline", 
         method = RequestMethod.POST)
-    @PreAuthorize("hasRole('HOSPITALSTAFF')")
+    //@PreAuthorize("hasRole('HOSPITALSTAFF')")
 	public ResponseEntity<?> declineAppointment(@RequestBody Map<String, Object> payload) {
         int patientID = (int)payload.get("patientID");
         int doctorID = (int)payload.get("doctorID");
@@ -157,7 +158,7 @@ public class HospitalStaffController {
     @RequestMapping(
     value = "/record/create", 
     method = RequestMethod.POST)
-    @PreAuthorize("hasRole('HOSPITALSTAFF')")
+    //@PreAuthorize("hasRole('HOSPITALSTAFF')")
 	public String recordCreate(@RequestBody Map<String, Object> payload) {
         
         int patientID = (int)payload.get("patientID");
@@ -175,7 +176,7 @@ public class HospitalStaffController {
 	}
 
     @GetMapping("/fetchAllTransactions")
-    @PreAuthorize("hasRole('HOSPITALSTAFF')")
+    //@PreAuthorize("hasRole('HOSPITALSTAFF')")
 	public Object fetchAllTransactions() {
         Connection c = null;
         Statement stmt = null;
@@ -199,6 +200,7 @@ public class HospitalStaffController {
             transactionID = (int)rs.getInt("transactionID");
             payer = (int)rs.getInt("payer");
             date = java.sql.Date.valueOf(rs.getString("date"));
+            status = rs.getString("status");
             out.add(new FetchAllTransactionsResponse(transactionAmount, transactionID, date, status, payer));
                 
             }
@@ -215,7 +217,7 @@ public class HospitalStaffController {
     @RequestMapping(
         value = "/bill/create", 
         method = RequestMethod.POST)
-        @PreAuthorize("hasRole('HOSPITALSTAFF')")
+        //@PreAuthorize("hasRole('HOSPITALSTAFF')")
         public String billCreate(@RequestBody Map<String, Object> payload) {
             
             int patientID = (int)payload.get("patientID");
@@ -234,7 +236,7 @@ public class HospitalStaffController {
         }
 
         @GetMapping("/fetchAllBills")
-        @PreAuthorize("hasRole('HOSPITALSTAFF')")
+        //@PreAuthorize("hasRole('HOSPITALSTAFF')")
         public Object fetchAllBills() {
             Connection c = null;
             Statement stmt = null;

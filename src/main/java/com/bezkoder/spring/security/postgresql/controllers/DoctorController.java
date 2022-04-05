@@ -29,7 +29,7 @@ public class DoctorController {
 
     //View Patient Record
     @GetMapping("/patient/records/{id}")
-    @PreAuthorize("hasRole('DOCTOR')")
+    //@PreAuthorize("hasRole('DOCTOR')")
     public Object getPatientRecords(@PathVariable long id) {
         
         Connection c = null;
@@ -69,7 +69,7 @@ public class DoctorController {
     @RequestMapping(
     value = "/patient/record/update", 
     method = RequestMethod.POST)
-    @PreAuthorize("hasRole('DOCTOR')")
+    //@PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<?> updatePatientRecord(@RequestBody Map<String, Object> payload) {
         int id = (int)payload.get("patientID");
         int inputter = (int)(payload.get("inputter"));
@@ -102,7 +102,7 @@ public class DoctorController {
     @RequestMapping(
         value = "/patient/diagnosis/create", 
         method = RequestMethod.POST)
-    @PreAuthorize("hasRole('DOCTOR')")
+    //@PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<?> insertPatientDiagnosis(@RequestBody Map<String, Object> payload) {
         int patientID = (int)payload.get("patientID");
         int doctorID = (int)(payload.get("doctorID")); 
@@ -136,7 +136,7 @@ public class DoctorController {
     @RequestMapping(
         value = "/patient/diagnosis/update", 
         method = RequestMethod.POST)
-    @PreAuthorize("hasRole('DOCTOR')")
+    //@PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<?> getPatientDiagnosisUpdate(@RequestBody Map<String, Object> payload) {
         int patientID = (int)payload.get("patientID");
         int doctorID = (int)payload.get("doctorID"); 
@@ -169,7 +169,7 @@ public class DoctorController {
     @RequestMapping(
         value = "/patient/diagnosis/delete", 
         method = RequestMethod.POST)
-    @PreAuthorize("hasRole('DOCTOR')")
+    //@PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<?> getPatientDiagnosisDelete(@RequestBody Map<String, Object> payload) {
         int patientID = (int)(payload.get("patientID"));
         int doctorID = (int)payload.get("doctorID"); 
@@ -201,7 +201,7 @@ public class DoctorController {
     @RequestMapping(
         value = "/patient/prescription/create", 
         method = RequestMethod.POST)
-    @PreAuthorize("hasRole('DOCTOR')")
+    //@PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<?> getPatientPrescriotionsCreate(@RequestBody Map<String, Object> payload) {
         int patientID = (int)payload.get("patientID");
         int doctorID = (int)payload.get("doctorID"); 
@@ -231,7 +231,7 @@ public class DoctorController {
     @RequestMapping(
         value = "/labtest/create", 
         method = RequestMethod.POST)
-    @PreAuthorize("hasRole('DOCTOR')")
+    //@PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<?> createLabTest(@RequestBody Map<String, Object> payload) {
         int patientID = (int)payload.get("patientID");
         String dateRecommended = (String)payload.get("dateRecommended");

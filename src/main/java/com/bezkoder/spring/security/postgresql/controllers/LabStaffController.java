@@ -84,7 +84,7 @@ public class LabStaffController {
     @RequestMapping(
         value = "/report/create", 
         method = RequestMethod.POST)
-    @PreAuthorize("hasRole('LABSTAFF')")
+    //@PreAuthorize("hasRole('LABSTAFF')")
 	public ResponseEntity<?> getCreateLabStaffReports(@RequestBody Map<String, Object> payload) {
         int patientID = (int)payload.get("patientID");
         int inputter = (int)payload.get("inputter"); 
@@ -120,7 +120,7 @@ public class LabStaffController {
     @RequestMapping(
         value = "/report/update", 
         method = RequestMethod.POST)
-    @PreAuthorize("hasRole('LABSTAFF')")
+    //@PreAuthorize("hasRole('LABSTAFF')")
 	public ResponseEntity<?> getUpdateLabStaffReports(@RequestBody Map<String, Object> payload) {
         int patientID = (int)payload.get("patientID");
         int inputter = (int)payload.get("inputter"); 
@@ -153,7 +153,7 @@ public class LabStaffController {
 	}
 
     @GetMapping("/diagnosis/{id}")
-    @PreAuthorize("hasRole('LABSTAFF')")
+    //@PreAuthorize("hasRole('LABSTAFF')")
 	public Object getPatientDiagnosis(@PathVariable long id) {
 
         Connection c = null;
@@ -201,7 +201,7 @@ public class LabStaffController {
 	}
 
     @GetMapping("/labTests")
-    @PreAuthorize("hasRole('LABSTAFF')")
+    //@PreAuthorize("hasRole('LABSTAFF')")
 	public Object getAllLabTests() {
         Connection c = null;
         Statement stmt = null;
@@ -248,7 +248,7 @@ public class LabStaffController {
     @RequestMapping(
         value = "/labTest/update", 
         method = RequestMethod.POST)
-    @PreAuthorize("hasRole('LABSTAFF')")
+    //@PreAuthorize("hasRole('LABSTAFF')")
 	public ResponseEntity<?> getLabTestsRequestUpdate(@RequestBody Map<String, Object> payload) {
         int patientID = (int)payload.get("patientID");
         String status = (String)payload.get("status"); 
@@ -277,7 +277,7 @@ public class LabStaffController {
 	}
 
     @GetMapping("/fetchAllLabTests")
-    @PreAuthorize("hasRole('LABSTAFF')")
+    //@PreAuthorize("hasRole('LABSTAFF')")
 	public Object getLabTests() {
         Connection c = null;
         Statement stmt = null;
@@ -324,7 +324,7 @@ public class LabStaffController {
     @RequestMapping(
         value = "/labTest/report/update", 
         method = RequestMethod.POST)
-    @PreAuthorize("hasRole('LABSTAFF')")
+    //@PreAuthorize("hasRole('LABSTAFF')")
 	public ResponseEntity<?> labTestsReportUpdate(@RequestBody Map<String, Object> payload) {
         int patientID = (int)payload.get("patientID");
         int inputter = (int)payload.get("inputter");
@@ -361,7 +361,7 @@ public class LabStaffController {
     @RequestMapping(
         value = "/labTest/report/delete", 
         method = RequestMethod.POST)
-    @PreAuthorize("hasRole('LABSTAFF')")
+    //@PreAuthorize("hasRole('LABSTAFF')")
 	public ResponseEntity<?> deleteTestsReportUpdate(@RequestBody Map<String, Object> payload) {
         int patientID = (int)payload.get("patientID");
         String testName = (String)payload.get("testName");

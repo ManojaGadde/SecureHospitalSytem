@@ -45,7 +45,7 @@ public class PatientController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @GetMapping("/prescription/{id}")
-    @PreAuthorize("hasRole('PATIENT')")
+    //@PreAuthorize("hasRole('PATIENT')")
 	public Object getPatientPrescription(@PathVariable long id) {
         Connection c = null;
         Statement stmt = null;
@@ -92,7 +92,7 @@ public class PatientController {
         return out;
 	}
     @GetMapping("/report/{id}")
-    @PreAuthorize("hasRole('PATIENT')")
+    //@PreAuthorize("hasRole('PATIENT')")
 	public Object getPatientReport(@PathVariable long id) {
         Connection c = null;
         Statement stmt = null;
@@ -145,7 +145,7 @@ public class PatientController {
 	}
 	
     @GetMapping("/details/id")
-	@PreAuthorize("hasRole('PATIENT')")
+	//@PreAuthorize("hasRole('PATIENT')")
 	public String userAccess1() {
 		return "patient Content.";
 	}
@@ -170,7 +170,7 @@ public class PatientController {
 
     // View Patient Appoitments
     @GetMapping("/appointment/{id}")
-    @PreAuthorize("hasRole('PATIENT')")
+    //@PreAuthorize("hasRole('PATIENT')")
 	public Object getPatientAppoitmentView(@PathVariable long id) {
         Connection c = null;
         Statement stmt = null;
@@ -214,7 +214,7 @@ public class PatientController {
     @RequestMapping(
     value = "/cancel/appointment", 
     method = RequestMethod.POST)
-    @PreAuthorize("hasRole('PATIENT')")
+    //@PreAuthorize("hasRole('PATIENT')")
 	public ResponseEntity<?> getPatientAppoitmentCancel(@RequestBody Map<String, Object> payload) {
         
         int patientID = (int)(payload.get("patientID"));
@@ -248,7 +248,7 @@ public class PatientController {
     @RequestMapping(
     value = "/book/appointment", 
     method = RequestMethod.POST)
-    @PreAuthorize("hasRole('PATIENT')")
+    //@PreAuthorize("hasRole('PATIENT')")
 	public String bookAppointment(@RequestBody Map<String, Object> payload) {
         
         int patientID = (int)payload.get("patientID");
@@ -257,7 +257,7 @@ public class PatientController {
         String date = (String)payload.get("date");
 
         String parsedString = time.split("-")[0];
-        String sql = "INSERT INTO public.appointment(\"patientID\", \"doctorID\", \"time\", date) VALUES (\'" + patientID + "\',\'" + doctorID + "\', \'" + java.sql.Time.valueOf(parsedString) + "\', \'" + java.sql.Date.valueOf(date) + "\');";
+        String sql = "INSERT INTO public.appointment(\"patientID\", \"doctorID\", \"time\", date) VALUES (" + patientID + "," + doctorID + ", '" + parsedString + "', '" + java.sql.Date.valueOf(date) + "');";
 
 		int rows = jdbcTemplate.update(sql);
         if (rows > 0) {
@@ -267,7 +267,7 @@ public class PatientController {
 	}
 
     @GetMapping("/profile/{id}")
-    @PreAuthorize("hasRole('PATIENT')")
+    //@PreAuthorize("hasRole('PATIENT')")
 	public ResponseEntity<?> getPatientProfile(@PathVariable long id) {
         Connection c = null;
         Statement stmt = null;
@@ -300,7 +300,7 @@ public class PatientController {
 	}
 
     @GetMapping("/diagnosis/{id}")
-    @PreAuthorize("hasRole('PATIENT')")
+    //@PreAuthorize("hasRole('PATIENT')")
 	public Object getPatientDiagnosis(@PathVariable long id) {
         Connection c = null;
         Statement stmt = null;
@@ -345,7 +345,7 @@ public class PatientController {
     @RequestMapping(
     value = "/profile/update", 
     method = RequestMethod.POST)
-    @PreAuthorize("hasRole('PATIENT')")
+    //@PreAuthorize("hasRole('PATIENT')")
 	public String updatePatientProfile(@RequestBody Map<String, Object> payload) {
         
         int patientID = (int)(payload.get("patientID"));
@@ -365,7 +365,7 @@ public class PatientController {
 	}
 
     @GetMapping("/transaction/{id}")
-    @PreAuthorize("hasRole('PATIENT')")
+    //@PreAuthorize("hasRole('PATIENT')")
 	public Object getPatientTransactionDetails(@PathVariable long id) {
         Connection c = null;
         Statement stmt = null;
@@ -404,7 +404,7 @@ public class PatientController {
 	}
 
     @GetMapping("/bills/{id}")
-    @PreAuthorize("hasRole('PATIENT')")
+    //@PreAuthorize("hasRole('PATIENT')")
     public Object fetchPatientBills(@PathVariable long id) {
         Connection c = null;
         Statement stmt = null;
@@ -445,7 +445,7 @@ public class PatientController {
     @RequestMapping(
     value = "/insurance/claim/insert", 
     method = RequestMethod.POST)
-    @PreAuthorize("hasRole('PATIENT')")
+    //@PreAuthorize("hasRole('PATIENT')")
 	public String insuranceClaimRequest(@RequestBody Map<String, Object> payload) {
         
         int transactionID = (int)(payload.get("transactionID"));
