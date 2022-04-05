@@ -47,47 +47,7 @@ import com.bezkoder.spring.security.postgresql.payload.response.PatientAppointme
 public class HospitalStaffController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
-    @GetMapping("/fetchAllAppointments")
-    //@PreAuthorize("hasRole('HOSPITALSTAFF')")
-	public Object fetchAllAppointments() {
-        Connection c = null;
-        Statement stmt = null;
-        int patientID = -1;
-        int doctorID = -1;
-        Date date = null;
-        Time time = null;
-        int approver = -1;
-        String status = null;
-        int amount = -1;
-        List<FetchAllDoctorsResponse> out = new ArrayList<FetchAllDoctorsResponse>();
-
-        try {
-            Class.forName("org.postgresql.Driver");
-            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
-            System.out.println("Successfully Connected.");  
-            stmt = (Statement) c.createStatement();
-
-            String sql = "SELECT * FROM public.appointment WHERE status='requested'";
-            ResultSet rs = stmt.executeQuery(sql);
-            while ( rs.next() ) {
-                
-                patientID = rs.getInt("patientID");
-                doctorID = rs.getInt("doctorID");
-                date  = rs.getDate("date");
-                time = rs.getTime("time");
-                approver = rs.getInt("approver");
-                status = rs.getString("status");
-                amount = rs.getInt("amount");
-                out.add(new FetchAllDoctorsResponse(patientID, doctorID, time, date, approver, status, amount));
-            }
-            rs.close();
-            stmt.close();
-            c.close();
-        } catch ( Exception e ) {
-        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
-          }
-        return out;
-    }
+    
 
     @RequestMapping(
         value = "/patient/appointment/approve", 
@@ -160,11 +120,12 @@ public class HospitalStaffController {
     method = RequestMethod.POST)
     //@PreAuthorize("hasRole('HOSPITALSTAFF')")
 	public String recordCreate(@RequestBody Map<String, Object> payload) {
+        System.out.println(payload);
         
-        int patientID = (int)payload.get("patientID");
-        int inputter = (int)payload.get("inputter");
-        String record = (String)payload.get("record");
-        String date = (String)payload.get("date");
+        int patientID = 137;//(int)payload.get("patientID");
+        int inputter = 143;//(int)payload.get("inputter");
+        String record = "covid";//(String)payload.get("record");
+        String date = "2022-04-04";//(String)payload.get("date");
 
         String sql = "INSERT INTO public.record(\"patientID\", record, inputter,date) VALUES (" + patientID + ", '" + record + "'," + inputter + ", '" + java.sql.Date.valueOf(date) + "');";
 
@@ -175,7 +136,7 @@ public class HospitalStaffController {
         return "Appointment Booked Successfully";
 	}
 
-    @GetMapping("/fetchAllTransactions")
+    @GetMapping("/fetachAllTransactions")
     //@PreAuthorize("hasRole('HOSPITALSTAFF')")
 	public Object fetchAllTransactions() {
         Connection c = null;

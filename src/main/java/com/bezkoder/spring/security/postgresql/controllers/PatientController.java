@@ -245,27 +245,7 @@ public class PatientController {
 
     // Delete Patient Appointment
     //@GetMapping("/book/appointment/{patientID}/{doctorID}/{time}/{date}")
-    @RequestMapping(
-    value = "/book/appointment", 
-    method = RequestMethod.POST)
-    //@PreAuthorize("hasRole('PATIENT')")
-	public String bookAppointment(@RequestBody Map<String, Object> payload) {
-        
-        int patientID = (int)payload.get("patientID");
-        int doctorID = (int)payload.get("doctorID");
-        String time = (String)payload.get("time");
-        String date = (String)payload.get("date");
-
-        String parsedString = time.split("-")[0];
-        String sql = "INSERT INTO public.appointment(\"patientID\", \"doctorID\", \"time\", date) VALUES (" + patientID + "," + doctorID + ", '" + parsedString + "', '" + java.sql.Date.valueOf(date) + "');";
-
-		int rows = jdbcTemplate.update(sql);
-        if (rows > 0) {
-            System.out.println("A new row has been inserted.");
-        }
-        return "Appointment Booked Successfully";
-	}
-
+    
     @GetMapping("/profile/{id}")
     //@PreAuthorize("hasRole('PATIENT')")
 	public ResponseEntity<?> getPatientProfile(@PathVariable long id) {

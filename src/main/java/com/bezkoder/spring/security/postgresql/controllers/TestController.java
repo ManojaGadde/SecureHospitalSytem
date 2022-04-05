@@ -33,20 +33,23 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.bezkoder.spring.security.postgresql.payload.response.DoctorNamesResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.FetchAllDoctorAppointmentsResponse;
+import com.bezkoder.spring.security.postgresql.payload.response.FetchAllDoctorsResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.FetchUserDetailsResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.MessageResponse;
 import com.bezkoder.spring.security.postgresql.payload.response.PatientAppointmentViewResponse;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/test")
+@RequestMapping("/api")
 public class TestController {
+  @Autowired
+    private JdbcTemplate jdbcTemplate;
 	@GetMapping("/all")
 	public String allAccess() {
 		return "Public Content.";
 	}
 	
-	@GetMapping("/doctorAppointments")
+	@GetMapping("/appointments")
 	public Object fetchDoctorAppointments() { 
         Connection c = null;
         Statement stmt = null;
@@ -95,7 +98,6 @@ public Object updateAppointments(@RequestBody Map<String, Object> payload) {
     String amount = (String)payload.get("amount");
     String parsedString = time.split("-")[0];
 
-
     try {
         Class.forName("org.postgresql.Driver");
         c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
@@ -116,6 +118,76 @@ public Object updateAppointments(@RequestBody Map<String, Object> payload) {
       }
     return "Update Successful";
 }	
+
+
+@GetMapping("/fetchAllAppointments")
+    //@PreAuthorize("hasRole('HOSPITALSTAFF')")
+	public Object fetchAllAppointments() {
+        Connection c = null;
+        Statement stmt = null;
+        int patientID = -1;
+        int doctorID = -1;
+        Date date = null;
+        Time time = null;
+        int approver = -1;
+        String status = null;
+        int amount = -1;
+        List<FetchAllDoctorsResponse> out = new ArrayList<FetchAllDoctorsResponse>();
+
+        try {
+            Class.forName("org.postgresql.Driver");
+            c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
+            System.out.println("Successfully Connected.");  
+            stmt = (Statement) c.createStatement();
+
+            String sql = "SELECT * FROM public.appointment";
+            ResultSet rs = stmt.executeQuery(sql);
+            while ( rs.next() ) {
+                
+                patientID = rs.getInt("patientID");
+                doctorID = rs.getInt("doctorID");
+                date  = rs.getDate("date");
+                time = rs.getTime("time");
+                approver = rs.getInt("approver");
+                status = rs.getString("status");
+                amount = rs.getInt("amount");
+                out.add(new FetchAllDoctorsResponse(patientID, doctorID, time, date, approver, status, amount));
+            }
+            rs.close();
+            stmt.close();
+            c.close();
+        } catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return out;
+    }
+
+@RequestMapping(
+    value = "/book/appointment", 
+    method = RequestMethod.POST)
+    //@PreAuthorize("hasRole('PATIENT')")
+	public ResponseEntity<?> bookAppointment(@RequestBody Map<String, Object> payload) {
+        try{
+        int patientID = (int)payload.get("patientID");
+        int doctorID = (int)payload.get("doctorID");
+        String time = (String)payload.get("time");
+        String date = (String)payload.get("date");
+
+        String parsedString = time.split("-")[0];
+        String sql = "INSERT INTO public.appointment(\"patientID\", \"doctorID\", \"time\", date) VALUES (" + patientID + "," + doctorID + ", '" + java.sql.Time.valueOf(parsedString) + "', '" + java.sql.Date.valueOf(date) + "');";
+        System.out.println(sql);
+
+		int rows = jdbcTemplate.update(sql);
+        if (rows > 0) {
+            System.out.println("A new row has been inserted.");
+        }
+      }
+      catch ( Exception e ) {
+        System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+          }
+        return ResponseEntity.ok("Successful");
+	}
+
 
 @GetMapping("/fetchAllDoctors")
     //@PreAuthorize("hasRole('PATIENT')")
@@ -163,7 +235,7 @@ public Object updateAppointments(@RequestBody Map<String, Object> payload) {
 	}
 
 	@GetMapping("/admin")
-	@PreAuthorize("hasRole('ADMIN')")
+	//@PreAuthorize("hasRole('ADMIN')")
 	public String adminAccess() {
 		return "Admin Board.";
 	}
@@ -175,17 +247,21 @@ public Object updateAppointments(@RequestBody Map<String, Object> payload) {
 	public Object createTransaction(@RequestBody Map<String, Object> payload) {
         Connection c = null;
         Statement stmt = null;
-        int payer = (int)payload.get("payer");
-        int transactionAmount = (int)payload.get("transactionAmount");
-        String status = (String)payload.get("status");
-        String date = (String)payload.get("date");
+        System.out.println("Before");
+        int payer = 137;//(int)payload.get("patientID");
+        int transactionAmount = 100;//(int)payload.get("transactionAmount");
+        String status = "completed";//(String)payload.get("status");
+        String date = "2022-04-04";//(String)payload.get("date");
+        System.out.println("After");
+
         try {
             Class.forName("org.postgresql.Driver");
             c = DriverManager.getConnection("jdbc:postgresql://ec2-44-202-162-44.compute-1.amazonaws.com:5432/postgres","backend", "CSE545_SS_backend");
             System.out.println("Successfully Connected.");  
             stmt = (Statement) c.createStatement();
 
-            String sql = "INSERT INTO public.transaction(\"transactionAmount\", payer, status, date) VALUES (" + transactionAmount + ", " + payer + ", '" + status + "', '" + date + "');";
+            String sql = "INSERT INTO public.transaction(\"transactionAmount\", payer, status, date) VALUES (" + transactionAmount + ", " + payer + ", '" + status + "', '" + java.sql.Date.valueOf(date) + "');";
+            System.out.println(sql);
 
             ResultSet rs = stmt.executeQuery(sql);
             System.out.println(rs);
@@ -231,7 +307,7 @@ public Object updateAppointments(@RequestBody Map<String, Object> payload) {
 	}
 
   @GetMapping("/admin/users")
-  @PreAuthorize("hasRole('ADMIN')")
+  //@PreAuthorize("hasRole('ADMIN')")
 	public Object getAllUsers() {
         Connection c = null;
         Statement stmt = null;
@@ -268,7 +344,7 @@ public Object updateAppointments(@RequestBody Map<String, Object> payload) {
 	}
 
   @GetMapping("/admin/delete/user/{id}")
-  @PreAuthorize("hasRole('ADMIN')")
+  //@PreAuthorize("hasRole('ADMIN')")
 	public Object deleteUser(@PathVariable long id) {
         Connection c = null;
         Statement stmt = null;
@@ -296,7 +372,7 @@ public Object updateAppointments(@RequestBody Map<String, Object> payload) {
   @RequestMapping(
 		value = "/admin/user/update",
 		method = RequestMethod.POST)
-  @PreAuthorize("hasRole('ADMIN')")
+  //@PreAuthorize("hasRole('ADMIN')")
   public Object updateUser(@RequestBody Map<String, Object> payload) {
     Connection c = null;
     Statement stmt = null;
